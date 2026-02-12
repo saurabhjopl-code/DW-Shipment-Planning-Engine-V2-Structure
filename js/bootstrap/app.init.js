@@ -54,7 +54,7 @@ const SHEETS = {
 };
 
 // ===============================
-// DOM REFERENCES
+// DOM
 // ===============================
 
 const progressFill = document.getElementById("progressFill");
@@ -66,14 +66,13 @@ const uniwareCountEl = document.getElementById("uniwareCount");
 const remarksCountEl = document.getElementById("remarksCount");
 
 const refreshBtn = document.getElementById("refreshBtn");
-
 const exportShipmentBtn = document.querySelector(".btn.primary");
 const exportRecallBtn = document.querySelector(".btn.danger");
 
 const tabButtons = document.querySelectorAll(".tab");
 
 // ===============================
-// APP STATE
+// STATE
 // ===============================
 
 export const appState = {
@@ -81,15 +80,12 @@ export const appState = {
   fc: [],
   uniware: [],
   remarks: [],
-
   saleConsolidated: [],
   fcConsolidated: {},
   uniwareConsolidated: {},
-
   drrData: [],
   dwData: [],
-
-  activeMP: "ALL"
+  activeTab: "Amazon IN"
 };
 
 // ===============================
@@ -124,10 +120,8 @@ function validateNumeric(data, fields, sheetName) {
     for (let field of fields) {
       if (row[field] === "") continue;
       const value = Number(row[field]);
-      if (isNaN(value))
-        throw new Error(`${sheetName}: Non-numeric ${field}`);
-      if (value < 0)
-        throw new Error(`${sheetName}: Negative ${field}`);
+      if (isNaN(value)) throw new Error(`${sheetName}: Non-numeric ${field}`);
+      if (value < 0) throw new Error(`${sheetName}: Negative ${field}`);
       row[field] = value;
     }
   }
@@ -152,58 +146,26 @@ async function fetchAndValidate(sheetKey, sheetConfig) {
 }
 
 // ===============================
-// FILTER
-// ===============================
-
-function getFilteredData() {
-
-  if (appState.activeMP === "ALL")
-    return appState.drrData;
-
-  const target = appState.activeMP.toUpperCase();
-
-  return appState.drrData.filter(item => {
-    const mp = (item.MP || "").toUpperCase();
-
-    if (target === "AMAZON IN") return mp.includes("AMAZON");
-    if (target === "FLIPKART") return mp.includes("FLIPKART");
-    if (target === "MYNTRA") return mp.includes("MYNTRA");
-
-    return true;
-  });
-}
-
-// ===============================
 // RENDER CONTROL
 // ===============================
 
 function renderAll() {
 
-  if (appState.activeMP === "DEMAND WEIGHT") {
-
-    document.getElementById("normalSection").style.display = "none";
-    document.getElementById("dwSection").style.display = "block";
-
+  if (appState.activeTab === "Demand Weight") {
     renderDW(appState);
     return;
   }
 
-  document.getElementById("normalSection").style.display = "block";
-  document.getElementById("dwSection").style.display = "none";
-
-  const filtered = getFilteredData();
-
-  renderFCSummary({ ...appState, drrData: filtered });
-  renderShipmentSummary({ ...appState, drrData: filtered });
-  renderShipmentReport({ ...appState, drrData: filtered });
+  renderFCSummary(appState);
+  renderShipmentSummary(appState);
+  renderShipmentReport(appState);
 }
 
 // ===============================
-// MAIN LOAD FLOW
+// MAIN LOAD
 // ===============================
 
 async function loadAllSheets() {
-
   try {
 
     updateProgress(10, "Loading Sale...");
@@ -232,7 +194,7 @@ async function loadAllSheets() {
     runDistributionEngine(appState);
     runFinalShipmentEngine(appState);
 
-    runDWEngine(appState); // 🔥 NEW — SAFE
+    runDWEngine(appState);
 
     updateProgress(95, "Rendering...");
     renderAll();
@@ -255,27 +217,18 @@ refreshBtn.addEventListener("click", () => {
 });
 
 exportShipmentBtn.addEventListener("click", () => {
-  exportShipment({ ...appState, drrData: getFilteredData() });
+  exportShipment(appState);
 });
 
 exportRecallBtn.addEventListener("click", () => {
-  exportRecall({ ...appState, drrData: getFilteredData() });
+  exportRecall(appState);
 });
 
 tabButtons.forEach(tab => {
   tab.addEventListener("click", () => {
-
     tabButtons.forEach(t => t.classList.remove("active"));
     tab.classList.add("active");
-
-    const label = tab.textContent.trim();
-
-    if (label === "Amazon IN") appState.activeMP = "AMAZON IN";
-    else if (label === "Flipkart") appState.activeMP = "FLIPKART";
-    else if (label === "Myntra") appState.activeMP = "MYNTRA";
-    else if (label === "Demand Weight") appState.activeMP = "DEMAND WEIGHT";
-    else appState.activeMP = "ALL";
-
+    appState.activeTab = tab.textContent.trim();
     renderAll();
   });
 });
