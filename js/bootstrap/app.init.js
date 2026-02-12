@@ -8,7 +8,7 @@ import { runRecallEngine } from "../core/demand/recall.engine.js";
 import { runDistributionEngine } from "../core/distribution/distribution.engine.js";
 import { runFinalShipmentEngine } from "../core/shipment/final-shipment.engine.js";
 
-import { runDWEngine } from "../core/analytics/dw.engine.js";
+import { runDWEngine } from "../ui/analytics/dw.engine.js";
 import { renderDW } from "../ui/analytics/dw.render.js";
 
 import { renderFCSummary } from "../ui/summary/fc-summary.render.js";
@@ -277,3 +277,4 @@ tabButtons.forEach(tab => {
 });
 
 loadAllSheets();
+
