@@ -1,17 +1,18 @@
 .content-container {
-  padding: 24px 32px;
+  padding: 32px;
 }
 
 .card {
   background: var(--card-bg);
-  padding: 20px;
-  margin-bottom: 24px;
+  padding: 24px;
+  margin-bottom: 28px;
   border-radius: var(--radius);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
 }
 
 .card h2 {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
   font-size: 16px;
   font-weight: 600;
+  text-align: center;
 }
