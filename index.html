@@ -18,78 +18,68 @@
 
 <body>
 
-  <!-- HEADER -->
-  <header class="app-header">
-    <div class="header-left">
-      <img src="./assets/logo.png" class="logo" />
+<header class="app-header">
+  <div class="header-left">
+    <img src="./assets/logo.png" class="logo" />
+  </div>
+
+  <div class="header-center">
+    <h1>DW Shipment Planning Engine</h1>
+    <p>Automated allocation for Amazon, Flipkart, Myntra & Seller</p>
+  </div>
+
+  <div class="header-right">
+    <button class="btn primary">Export Shipment</button>
+    <button class="btn danger">Export Recall</button>
+  </div>
+</header>
+
+<section class="loading-section">
+  <div class="loading-left">
+    <div class="progress-bar">
+      <div id="progressFill" class="progress-fill"></div>
     </div>
+    <span id="loadingText" class="loading-text">Initializing...</span>
+  </div>
 
-    <div class="header-center">
-      <h1>DW Shipment Planning Engine</h1>
-      <p>Automated allocation for Amazon, Flipkart, Myntra & Seller</p>
-    </div>
+  <div class="loading-right">
+    <button id="refreshBtn" class="btn secondary">Refresh</button>
+  </div>
+</section>
 
-    <div class="header-right">
-      <button class="btn primary">Export Shipment</button>
-      <button class="btn danger">Export Recall</button>
-    </div>
-  </header>
+<section class="row-strip-modern">
+  <div class="row-metric">
+    <span class="metric-label">Sale</span>
+    <span id="saleCount" class="metric-value">0</span>
+  </div>
+  <div class="metric-dot"></div>
+  <div class="row-metric">
+    <span class="metric-label">FC Stock</span>
+    <span id="fcCount" class="metric-value">0</span>
+  </div>
+  <div class="metric-dot"></div>
+  <div class="row-metric">
+    <span class="metric-label">Uniware</span>
+    <span id="uniwareCount" class="metric-value">0</span>
+  </div>
+  <div class="metric-dot"></div>
+  <div class="row-metric">
+    <span class="metric-label">Remarks</span>
+    <span id="remarksCount" class="metric-value">0</span>
+  </div>
+</section>
 
-  <!-- LOADING BAR -->
-  <section class="loading-section">
-    <div class="loading-left">
-      <div class="progress-bar">
-        <div id="progressFill" class="progress-fill"></div>
-      </div>
-      <span id="loadingText" class="loading-text">Initializing...</span>
-    </div>
+<section class="tabs">
+  <button class="tab active">Amazon IN</button>
+  <button class="tab">Flipkart</button>
+  <button class="tab">Myntra</button>
+  <button class="tab">Demand Weight</button>
+</section>
 
-    <div class="loading-right">
-      <button id="refreshBtn" class="btn secondary">Refresh</button>
-    </div>
-  </section>
+<section class="content-container">
 
-  <!-- ROW COUNT STRIP -->
-  <section class="row-strip-modern">
-    <div class="row-metric">
-      <span class="metric-label">Sale</span>
-      <span id="saleCount" class="metric-value">0</span>
-    </div>
+  <div id="normalSection">
 
-    <div class="metric-dot"></div>
-
-    <div class="row-metric">
-      <span class="metric-label">FC Stock</span>
-      <span id="fcCount" class="metric-value">0</span>
-    </div>
-
-    <div class="metric-dot"></div>
-
-    <div class="row-metric">
-      <span class="metric-label">Uniware</span>
-      <span id="uniwareCount" class="metric-value">0</span>
-    </div>
-
-    <div class="metric-dot"></div>
-
-    <div class="row-metric">
-      <span class="metric-label">Remarks</span>
-      <span id="remarksCount" class="metric-value">0</span>
-    </div>
-  </section>
-
-  <!-- MP TABS -->
-  <section class="tabs">
-    <button class="tab active">Amazon IN</button>
-    <button class="tab">Flipkart</button>
-    <button class="tab">Myntra</button>
-    <button class="tab">SELLER</button>
-  </section>
-
-  <!-- MAIN CONTENT -->
-  <section class="content-container">
-
-    <!-- FC SUMMARY -->
     <div class="card">
       <h2>FC Summary</h2>
       <table>
@@ -102,15 +92,10 @@
             <th>Stock Cover</th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td colspan="5">Data will load after engine integration.</td>
-          </tr>
-        </tbody>
+        <tbody id="fcSummaryBody"></tbody>
       </table>
     </div>
 
-    <!-- SHIPMENT & RECALL SUMMARY -->
     <div class="card">
       <h2>Shipment & Recall Summary</h2>
       <table>
@@ -125,15 +110,10 @@
             <th>Recall Qty</th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td colspan="7">Data will load after engine integration.</td>
-          </tr>
-        </tbody>
+        <tbody id="shipmentSummaryBody"></tbody>
       </table>
     </div>
 
-    <!-- SHIPMENT REPORT -->
     <div class="card">
       <h2>Shipment Report</h2>
       <table>
@@ -153,17 +133,37 @@
             <th>Recall</th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td colspan="12">Data will load after engine integration.</td>
-          </tr>
-        </tbody>
+        <tbody id="shipmentReportBody"></tbody>
       </table>
     </div>
 
-  </section>
+  </div>
 
-  <script type="module" src="./js/bootstrap/app.init.js"></script>
+  <div id="dwSection" style="display:none;">
+
+    <div class="card">
+      <h2>Allocation Demand Weight View</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Uniware SKU</th>
+            <th>MPSKU</th>
+            <th>30D Units</th>
+            <th>Internal DW</th>
+            <th>Allocate Qty</th>
+            <th>Calculated Split</th>
+            <th>SP-Qty (Engine)</th>
+          </tr>
+        </thead>
+        <tbody id="dwBody"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+</section>
+
+<script type="module" src="./js/bootstrap/app.init.js"></script>
 
 </body>
 </html>
