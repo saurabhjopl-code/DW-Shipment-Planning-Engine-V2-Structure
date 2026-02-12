@@ -2,9 +2,11 @@ import { runDRREngine } from "../core/demand/drr.engine.js";
 import { runSCEngine } from "../core/demand/sc.engine.js";
 import { runRequiredEngine } from "../core/demand/required.engine.js";
 import { runRecallEngine } from "../core/demand/recall.engine.js";
+import { runDistributionEngine } from "../core/distribution/distribution.engine.js";
+import { runFinalShipmentEngine } from "../core/shipment/final-shipment.engine.js";
 
 // ===============================
-// SHEET CONFIG
+// CONFIG SAME AS BEFORE
 // ===============================
 
 const SHEETS = {
@@ -38,23 +40,13 @@ const SHEETS = {
   }
 };
 
-// ===============================
-// DOM
-// ===============================
-
 const progressFill = document.getElementById("progressFill");
 const loadingText = document.getElementById("loadingText");
-
 const saleCountEl = document.getElementById("saleCount");
 const fcCountEl = document.getElementById("fcCount");
 const uniwareCountEl = document.getElementById("uniwareCount");
 const remarksCountEl = document.getElementById("remarksCount");
-
 const refreshBtn = document.getElementById("refreshBtn");
-
-// ===============================
-// STATE
-// ===============================
 
 export const appState = {
   sale: [],
@@ -63,10 +55,6 @@ export const appState = {
   remarks: [],
   drrData: []
 };
-
-// ===============================
-// HELPERS
-// ===============================
 
 function updateProgress(percent, text, color = "#2563eb") {
   progressFill.style.width = percent + "%";
@@ -123,17 +111,13 @@ async function fetchAndValidate(sheetKey, sheetConfig) {
   return data;
 }
 
-// ===============================
-// LOAD FLOW
-// ===============================
-
 async function loadAllSheets() {
   try {
-    updateProgress(10, "Loading Sale 30D...");
+    updateProgress(10, "Loading Sale...");
     appState.sale = await fetchAndValidate("Sale", SHEETS.sale);
     saleCountEl.textContent = appState.sale.length.toLocaleString();
 
-    updateProgress(25, "Loading FC Stock...");
+    updateProgress(25, "Loading FC...");
     appState.fc = await fetchAndValidate("FC", SHEETS.fc);
     fcCountEl.textContent = appState.fc.length.toLocaleString();
 
@@ -145,21 +129,21 @@ async function loadAllSheets() {
     appState.remarks = await fetchAndValidate("Remarks", SHEETS.remarks);
     remarksCountEl.textContent = appState.remarks.length.toLocaleString();
 
-    updateProgress(70, "Running DRR Engine...");
+    updateProgress(70, "Running Demand Engine...");
     runDRREngine(appState);
-
-    updateProgress(80, "Running SC Engine...");
     runSCEngine(appState);
-
-    updateProgress(85, "Calculating Required Shipment...");
     runRequiredEngine(appState);
-
-    updateProgress(95, "Calculating Recall...");
     runRecallEngine(appState);
+
+    updateProgress(85, "Running Distribution Engine...");
+    runDistributionEngine(appState);
+
+    updateProgress(95, "Calculating Final Shipment...");
+    runFinalShipmentEngine(appState);
 
     updateProgress(100, "All Data Loaded Successfully ✔", "#16a34a");
 
-    console.log("Final Demand Data:", appState.drrData);
+    console.log("FINAL ENGINE OUTPUT:", appState.drrData);
 
   } catch (error) {
     updateProgress(100, "Validation Failed ❌", "#dc2626");
