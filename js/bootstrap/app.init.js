@@ -19,7 +19,7 @@ const SHEETS = {
     requiredHeaders: [
       "MP",
       "Warehouse Id",
-      "SKU",
+      "MPSKU",
       "Channel ID",
       "Quantity"
     ]
@@ -126,3 +126,4 @@ refreshBtn.addEventListener("click", () => {
 });
 
 loadAllSheets();
+
