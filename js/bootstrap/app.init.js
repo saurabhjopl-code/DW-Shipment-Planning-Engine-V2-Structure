@@ -7,7 +7,6 @@ import { runRecallEngine } from "../core/demand/recall.engine.js";
 
 import { runDistributionEngine } from "../core/distribution/distribution.engine.js";
 import { runFinalShipmentEngine } from "../core/shipment/final-shipment.engine.js";
-import { runTargetFCEngine } from "../core/shipment/target-fc.engine.js"; // ✅ NEW
 
 import { renderFCSummary } from "../ui/summary/fc-summary.render.js";
 import { renderShipmentSummary } from "../ui/summary/shipment-summary.render.js";
@@ -85,6 +84,7 @@ export const appState = {
   uniwareConsolidated: {},
 
   drrData: [],
+
   activeMP: "ALL"
 };
 
@@ -210,7 +210,6 @@ async function loadAllSheets() {
     runRecallEngine(appState);
     runDistributionEngine(appState);
     runFinalShipmentEngine(appState);
-    runTargetFCEngine(appState); // ✅ ONLY NEW ADDITION
 
     updateProgress(95, "Rendering...");
     renderAll();
