@@ -1,23 +1,22 @@
 // ==========================================
-// DISTRIBUTION ENGINE (EXCLUDES SELLER MP)
+// DISTRIBUTION ENGINE (CONSOLIDATED)
 // ==========================================
 
 export function runDistributionEngine(appState) {
 
+  // Build MPSKU → Uniware map
   const mpskuToUSKU = {};
   appState.sale.forEach(row => {
     mpskuToUSKU[row["MPSKU"]] = row["Uniware SKU"];
   });
 
+  // Group by USKU
   const uskuGroups = {};
 
   appState.drrData.forEach(item => {
 
-    // Ignore Seller MP rows
-    if ((item.MP || "").toUpperCase().includes("SELLER"))
-      return;
-
     const usku = mpskuToUSKU[item.MPSKU] || null;
+
     item.usku = usku;
 
     if (!uskuGroups[usku]) {
@@ -39,13 +38,15 @@ export function runDistributionEngine(appState) {
     const allocateQty =
       appState.uniwareConsolidated[usku]?.allocateQty || 0;
 
+    const sQty = allocateQty;
+
     group.rows.forEach(item => {
 
-      const weight = uskuUnits === 0
+      const mpskuDW = uskuUnits === 0
         ? 0
         : item.totalUnits30D / uskuUnits;
 
-      const spQty = Math.floor(allocateQty * weight);
+      const spQty = Math.floor(sQty * mpskuDW);
 
       item.spQty = spQty || 0;
     });

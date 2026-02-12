@@ -10,7 +10,6 @@ import { runFinalShipmentEngine } from "../core/shipment/final-shipment.engine.j
 
 import { renderFCSummary } from "../ui/summary/fc-summary.render.js";
 import { renderShipmentSummary } from "../ui/summary/shipment-summary.render.js";
-import { renderSellerSummary } from "../ui/summary/seller-summary.render.js";
 import { renderShipmentReport } from "../ui/report/shipment-report.render.js";
 
 import { exportShipment } from "../services/export/export-shipment.js";
@@ -85,6 +84,7 @@ export const appState = {
   uniwareConsolidated: {},
 
   drrData: [],
+
   activeMP: "ALL"
 };
 
@@ -172,10 +172,8 @@ function getFilteredData() {
 
 function renderAll() {
   const filtered = getFilteredData();
-
   renderFCSummary({ ...appState, drrData: filtered });
   renderShipmentSummary({ ...appState, drrData: filtered });
-  renderSellerSummary(appState); // Seller summary uses full dataset
   renderShipmentReport({ ...appState, drrData: filtered });
 }
 
@@ -219,7 +217,6 @@ async function loadAllSheets() {
     updateProgress(100, "All Data Loaded Successfully ✔", "#16a34a");
 
   } catch (error) {
-
     updateProgress(100, "Validation Failed ❌", "#dc2626");
     console.error(error);
   }

@@ -1,12 +1,12 @@
 // ==========================================
-// SHIPMENT SUMMARY WITH COLOR LOGIC (STABLE)
+// SHIPMENT SUMMARY WITH COLOR LOGIC
 // ==========================================
 
 export function renderShipmentSummary(appState) {
 
-  const tbody = document
-    .getElementById("shipmentSummaryTable")
-    .querySelector("tbody");
+  const tbody = document.querySelector(
+    ".content-container .card:nth-child(2) tbody"
+  );
 
   tbody.innerHTML = "";
 
@@ -53,7 +53,7 @@ export function renderShipmentSummary(appState) {
 
     tbody.appendChild(tr);
 
-    // Under Supply Highlight
+    // Under-supply highlight
     if (group.totalFinal < group.totalRequired) {
       tr.querySelector(".final-cell").style.color = "#f59e0b";
       tr.querySelector(".final-cell").style.fontWeight = "600";
