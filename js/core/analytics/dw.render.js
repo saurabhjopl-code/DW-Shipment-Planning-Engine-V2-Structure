@@ -1,8 +1,33 @@
 // ==========================================
-// DEMAND WEIGHT RENDER
+// DEMAND WEIGHT RENDER (SAFE VERSION)
 // ==========================================
 
 export function renderDW(appState) {
+
+  // Find shipment report card body and reuse it
+  const shipmentCard = document.querySelector(
+    ".content-container .card:nth-child(3)"
+  );
+
+  if (!shipmentCard) return;
+
+  shipmentCard.innerHTML = `
+    <h2>Demand Weight (Global View)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Uniware SKU</th>
+          <th>MP SKU</th>
+          <th>30D Units</th>
+          <th>Internal DW</th>
+          <th>Allocate Qty</th>
+          <th>Calculated Split</th>
+          <th>SP Qty (Engine)</th>
+        </tr>
+      </thead>
+      <tbody id="dwBody"></tbody>
+    </table>
+  `;
 
   const tbody = document.getElementById("dwBody");
   if (!tbody) return;
