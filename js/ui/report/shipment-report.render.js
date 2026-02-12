@@ -1,12 +1,12 @@
 // ==========================================
-// SHIPMENT REPORT RENDER WITH COLOR LOGIC
+// SHIPMENT REPORT WITH TARGET FC COLUMN
 // ==========================================
 
 export function renderShipmentReport(appState) {
 
-  const tbody = document.querySelector(
-    ".content-container .card:nth-child(3) tbody"
-  );
+  const tbody = document
+    .getElementById("shipmentReportTable")
+    .querySelector("tbody");
 
   tbody.innerHTML = "";
 
@@ -20,7 +20,6 @@ export function renderShipmentReport(appState) {
 
     const tr = document.createElement("tr");
 
-    // Closed SKU row grey
     if (item.isClosed) {
       tr.style.background = "#f3f4f6";
       tr.style.color = "#6b7280";
@@ -30,6 +29,7 @@ export function renderShipmentReport(appState) {
       <td>${item.MP}</td>
       <td>${item.MPSKU}</td>
       <td>${item.warehouseId}</td>
+      <td>${item.targetFC || "-"}</td>
       <td>${item.usku || ""}</td>
       <td>${(item.totalUnits30D || 0).toLocaleString()}</td>
       <td>${(item.drr || 0).toFixed(2)}</td>
@@ -43,13 +43,11 @@ export function renderShipmentReport(appState) {
 
     tbody.appendChild(tr);
 
-    // 🔴 SC > 90
     if (stockCover > 90) {
       tr.querySelector(".sc-cell").style.color = "#dc2626";
       tr.querySelector(".sc-cell").style.fontWeight = "600";
     }
 
-    // 🟠 Under Supplied
     if (!item.isClosed && finalShipment < required) {
       tr.querySelector(".final-cell").style.color = "#f59e0b";
       tr.querySelector(".final-cell").style.fontWeight = "600";
