@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DW Shipment Planning Engine</title>
+
+  <link rel="stylesheet" href="./css/base/reset.css" />
+  <link rel="stylesheet" href="./css/base/variables.css" />
+  <link rel="stylesheet" href="./css/layout/grid.css" />
+  <link rel="stylesheet" href="./css/layout/sections.css" />
+  <link rel="stylesheet" href="./css/components/header.css" />
+  <link rel="stylesheet" href="./css/components/loading-bar.css" />
+  <link rel="stylesheet" href="./css/components/tabs.css" />
+  <link rel="stylesheet" href="./css/components/tables.css" />
+  <link rel="stylesheet" href="./css/components/cards.css" />
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-left">
+      <img src="./assets/logo.png" class="logo" />
+    </div>
+
+    <div class="header-center">
+      <h1>DW Shipment Planning Engine</h1>
+      <p>Automated allocation for Amazon, Flipkart, Myntra & Seller</p>
+    </div>
+
+    <div class="header-right">
+      <button class="btn primary">Export Shipment</button>
+      <button class="btn danger">Export Recall</button>
+    </div>
+  </header>
+
+  <!-- LOADING BAR -->
+  <section class="loading-section">
+    <div class="loading-left">
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: 60%;"></div>
+      </div>
+      <span class="loading-text">Loading Sale 30D...</span>
+    </div>
+
+    <div class="loading-right">
+      <button class="btn secondary">Refresh</button>
+    </div>
+  </section>
+
+  <!-- ROW COUNT STRIP -->
+  <section class="row-strip">
+    <div>Sale Rows: 12,480</div>
+    <div>FC Stock Rows: 220</div>
+    <div>Uniware Rows: 180</div>
+    <div>Remarks Rows: 54</div>
+  </section>
+
+  <!-- MP TABS -->
+  <section class="tabs">
+    <button class="tab active">Amazon IN</button>
+    <button class="tab">Flipkart</button>
+    <button class="tab">Myntra</button>
+    <button class="tab">SELLER</button>
+  </section>
+
+  <!-- SUMMARY TABLES -->
+  <section class="content-container">
+
+    <!-- FC SUMMARY -->
+    <div class="card">
+      <h2>FC Summary</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>FC</th>
+            <th>Total Stock</th>
+            <th>Total Sale</th>
+            <th>DRR</th>
+            <th>Stock Cover</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>FC1</td>
+            <td>1200</td>
+            <td>900</td>
+            <td>30</td>
+            <td>40</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SHIPMENT & RECALL SUMMARY -->
+    <div class="card">
+      <h2>Shipment & Recall Summary</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>FC</th>
+            <th>Total Stock</th>
+            <th>Total Sale</th>
+            <th>DRR</th>
+            <th>Actual Shipment Qty</th>
+            <th>Shipment Qty (Allocated)</th>
+            <th>Recall Qty</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>FC1</td>
+            <td>1200</td>
+            <td>900</td>
+            <td>30</td>
+            <td>400</td>
+            <td>300</td>
+            <td>100</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SHIPMENT REPORT -->
+    <div class="card">
+      <h2>Shipment Report</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>MP</th>
+            <th>MPSKU</th>
+            <th>Warehouse</th>
+            <th>Uniware SKU</th>
+            <th>Total Sale</th>
+            <th>DRR</th>
+            <th>FC Stock</th>
+            <th>Stock Cover</th>
+            <th>Actual Shipment</th>
+            <th>SP-Qty</th>
+            <th>Final Shipment</th>
+            <th>Recall</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Amazon</td>
+            <td>SKU123</td>
+            <td>FC1</td>
+            <td>U-1001</td>
+            <td>120</td>
+            <td>4</td>
+            <td>100</td>
+            <td>25</td>
+            <td>80</td>
+            <td>60</td>
+            <td>60</td>
+            <td>0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </section>
+
+</body>
+</html>
