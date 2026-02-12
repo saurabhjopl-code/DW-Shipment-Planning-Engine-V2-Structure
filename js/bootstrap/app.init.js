@@ -1,5 +1,6 @@
 import { runDRREngine } from "../core/demand/drr.engine.js";
 import { runSCEngine } from "../core/demand/sc.engine.js";
+import { runRequiredEngine } from "../core/demand/required.engine.js";
 
 // ===============================
 // SHEET CONFIG
@@ -131,23 +132,26 @@ async function loadAllSheets() {
     appState.sale = await fetchAndValidate("Sale", SHEETS.sale);
     saleCountEl.textContent = appState.sale.length.toLocaleString();
 
-    updateProgress(30, "Loading FC Stock...");
+    updateProgress(25, "Loading FC Stock...");
     appState.fc = await fetchAndValidate("FC", SHEETS.fc);
     fcCountEl.textContent = appState.fc.length.toLocaleString();
 
-    updateProgress(50, "Loading Uniware...");
+    updateProgress(40, "Loading Uniware...");
     appState.uniware = await fetchAndValidate("Uniware", SHEETS.uniware);
     uniwareCountEl.textContent = appState.uniware.length.toLocaleString();
 
-    updateProgress(65, "Loading Remarks...");
+    updateProgress(55, "Loading Remarks...");
     appState.remarks = await fetchAndValidate("Remarks", SHEETS.remarks);
     remarksCountEl.textContent = appState.remarks.length.toLocaleString();
 
-    updateProgress(80, "Running DRR Engine...");
+    updateProgress(70, "Running DRR Engine...");
     runDRREngine(appState);
 
-    updateProgress(90, "Running SC Engine...");
+    updateProgress(80, "Running SC Engine...");
     runSCEngine(appState);
+
+    updateProgress(90, "Calculating Required Shipment...");
+    runRequiredEngine(appState);
 
     updateProgress(100, "All Data Loaded Successfully ✔", "#16a34a");
 
