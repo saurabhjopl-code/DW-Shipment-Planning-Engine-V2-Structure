@@ -4,11 +4,13 @@ import { runRequiredEngine } from "../core/demand/required.engine.js";
 import { runRecallEngine } from "../core/demand/recall.engine.js";
 import { runDistributionEngine } from "../core/distribution/distribution.engine.js";
 import { runFinalShipmentEngine } from "../core/shipment/final-shipment.engine.js";
+
 import { renderFCSummary } from "../ui/summary/fc-summary.render.js";
 import { renderShipmentSummary } from "../ui/summary/shipment-summary.render.js";
+import { renderShipmentReport } from "../ui/report/shipment-report.render.js";
 
 // ===============================
-// CONFIG (same as before)
+// CONFIG
 // ===============================
 
 const SHEETS = {
@@ -141,11 +143,12 @@ async function loadAllSheets() {
     runDistributionEngine(appState);
     runFinalShipmentEngine(appState);
 
-    updateProgress(93, "Rendering FC Summary...");
+    updateProgress(93, "Rendering Summaries...");
     renderFCSummary(appState);
-
-    updateProgress(97, "Rendering Shipment Summary...");
     renderShipmentSummary(appState);
+
+    updateProgress(97, "Rendering Shipment Report...");
+    renderShipmentReport(appState);
 
     updateProgress(100, "All Data Loaded Successfully ✔", "#16a34a");
 
