@@ -1,12 +1,12 @@
 // ==========================================
-// SHIPMENT REPORT RENDER WITH COLOR LOGIC
+// SHIPMENT REPORT RENDER WITH COLOR LOGIC (STABLE)
 // ==========================================
 
 export function renderShipmentReport(appState) {
 
-  const tbody = document.querySelector(
-    ".content-container .card:nth-child(3) tbody"
-  );
+  const tbody = document
+    .getElementById("shipmentReportTable")
+    .querySelector("tbody");
 
   tbody.innerHTML = "";
 
@@ -20,7 +20,7 @@ export function renderShipmentReport(appState) {
 
     const tr = document.createElement("tr");
 
-    // Closed SKU row grey
+    // Closed SKU Grey
     if (item.isClosed) {
       tr.style.background = "#f3f4f6";
       tr.style.color = "#6b7280";
