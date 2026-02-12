@@ -1,11 +1,16 @@
 // ==========================================
-// DEMAND WEIGHT ENGINE (ALLOCATION VIEW)
-// Based on CURRENT distribution logic
+// DEMAND WEIGHT ENGINE
+// Pure analytics view – no mutation of shipment
 // ==========================================
 
 export function runDWEngine(appState) {
 
   const dwData = [];
+
+  if (!appState.drrData || appState.drrData.length === 0) {
+    appState.dwData = [];
+    return [];
+  }
 
   // Build MPSKU → Uniware map
   const mpskuToUSKU = {};
@@ -13,17 +18,16 @@ export function runDWEngine(appState) {
     mpskuToUSKU[row["MPSKU"]] = row["Uniware SKU"];
   });
 
-  // Group drrData by USKU
+  // Group by USKU
   const uskuGroups = {};
 
   appState.drrData.forEach(item => {
 
-    const usku = mpskuToUSKU[item.MPSKU] || null;
-    if (!usku) return;
+    const usku = mpskuToUSKU[item.MPSKU] || "UNKNOWN";
 
     if (!uskuGroups[usku]) {
       uskuGroups[usku] = {
-        allocateQty: appState.uniwareConsolidated[usku]?.allocateQty || 0,
+        allocateQty: appState.uniwareConsolidated?.[usku]?.allocateQty || 0,
         totalUnits: 0,
         rows: []
       };
@@ -33,7 +37,7 @@ export function runDWEngine(appState) {
     uskuGroups[usku].rows.push(item);
   });
 
-  // Calculate internal DW + allocation split
+  // Calculate DW + allocation view
   Object.keys(uskuGroups).forEach(usku => {
 
     const group = uskuGroups[usku];
@@ -42,9 +46,10 @@ export function runDWEngine(appState) {
 
     group.rows.forEach(item => {
 
-      const internalDW = totalUnits === 0
-        ? 0
-        : (item.totalUnits30D || 0) / totalUnits;
+      const internalDW =
+        totalUnits === 0
+          ? 0
+          : (item.totalUnits30D || 0) / totalUnits;
 
       const calculatedSplit = Math.floor(allocateQty * internalDW);
 
@@ -54,13 +59,13 @@ export function runDWEngine(appState) {
         totalUnits: item.totalUnits30D || 0,
         internalDW,
         allocateQty,
-        spQty: item.spQty || 0,
-        calculatedSplit
+        calculatedSplit,
+        spQty: item.spQty || 0
       });
+
     });
   });
 
   appState.dwData = dwData;
-
   return dwData;
 }
