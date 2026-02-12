@@ -1,7 +1,8 @@
 import { runDRREngine } from "../core/demand/drr.engine.js";
+import { runSCEngine } from "../core/demand/sc.engine.js";
 
 // ===============================
-// SHEET CONFIG (unchanged)
+// SHEET CONFIG
 // ===============================
 
 const SHEETS = {
@@ -62,7 +63,7 @@ export const appState = {
 };
 
 // ===============================
-// HELPERS (same as before)
+// HELPERS
 // ===============================
 
 function updateProgress(percent, text, color = "#2563eb") {
@@ -134,18 +135,23 @@ async function loadAllSheets() {
     appState.fc = await fetchAndValidate("FC", SHEETS.fc);
     fcCountEl.textContent = appState.fc.length.toLocaleString();
 
-    updateProgress(55, "Loading Uniware...");
+    updateProgress(50, "Loading Uniware...");
     appState.uniware = await fetchAndValidate("Uniware", SHEETS.uniware);
     uniwareCountEl.textContent = appState.uniware.length.toLocaleString();
 
-    updateProgress(75, "Loading Remarks...");
+    updateProgress(65, "Loading Remarks...");
     appState.remarks = await fetchAndValidate("Remarks", SHEETS.remarks);
     remarksCountEl.textContent = appState.remarks.length.toLocaleString();
 
-    updateProgress(90, "Running DRR Engine...");
+    updateProgress(80, "Running DRR Engine...");
     runDRREngine(appState);
 
+    updateProgress(90, "Running SC Engine...");
+    runSCEngine(appState);
+
     updateProgress(100, "All Data Loaded Successfully ✔", "#16a34a");
+
+    console.log("Final Demand Data:", appState.drrData);
 
   } catch (error) {
     updateProgress(100, "Validation Failed ❌", "#dc2626");
