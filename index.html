@@ -18,7 +18,6 @@
 
 <body>
 
-  <!-- HEADER -->
   <header class="app-header">
     <div class="header-left">
       <img src="./assets/logo.png" class="logo" />
@@ -35,7 +34,6 @@
     </div>
   </header>
 
-  <!-- LOADING BAR -->
   <section class="loading-section">
     <div class="loading-left">
       <div class="progress-bar">
@@ -49,36 +47,28 @@
     </div>
   </section>
 
-  <!-- ROW COUNT STRIP -->
   <section class="row-strip-modern">
     <div class="row-metric">
       <span class="metric-label">Sale</span>
       <span id="saleCount" class="metric-value">0</span>
     </div>
-
     <div class="metric-dot"></div>
-
     <div class="row-metric">
       <span class="metric-label">FC Stock</span>
       <span id="fcCount" class="metric-value">0</span>
     </div>
-
     <div class="metric-dot"></div>
-
     <div class="row-metric">
       <span class="metric-label">Uniware</span>
       <span id="uniwareCount" class="metric-value">0</span>
     </div>
-
     <div class="metric-dot"></div>
-
     <div class="row-metric">
       <span class="metric-label">Remarks</span>
       <span id="remarksCount" class="metric-value">0</span>
     </div>
   </section>
 
-  <!-- MP TABS -->
   <section class="tabs">
     <button class="tab active">Amazon IN</button>
     <button class="tab">Flipkart</button>
@@ -86,13 +76,11 @@
     <button class="tab">SELLER</button>
   </section>
 
-  <!-- MAIN CONTENT -->
   <section class="content-container">
 
-    <!-- FC SUMMARY -->
     <div class="card">
       <h2>FC Summary</h2>
-      <table>
+      <table id="fcSummaryTable">
         <thead>
           <tr>
             <th>FC</th>
@@ -106,10 +94,9 @@
       </table>
     </div>
 
-    <!-- SHIPMENT & RECALL SUMMARY -->
     <div class="card">
       <h2>Shipment & Recall Summary</h2>
-      <table>
+      <table id="shipmentSummaryTable">
         <thead>
           <tr>
             <th>FC</th>
@@ -125,10 +112,9 @@
       </table>
     </div>
 
-    <!-- SELLER ALLOCATION SUMMARY -->
     <div class="card">
       <h2>Seller Allocation Summary</h2>
-      <table>
+      <table id="sellerSummaryTable">
         <thead>
           <tr>
             <th>Uniware SKU</th>
@@ -141,10 +127,9 @@
       </table>
     </div>
 
-    <!-- SHIPMENT REPORT -->
     <div class="card">
       <h2>Shipment Report</h2>
-      <table>
+      <table id="shipmentReportTable">
         <thead>
           <tr>
             <th>MP</th>
