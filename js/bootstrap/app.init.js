@@ -15,16 +15,18 @@ const remarksCountEl = document.getElementById("remarksCount");
 
 const refreshBtn = document.getElementById("refreshBtn");
 
-function updateProgress(percent, text) {
+function updateProgress(percent, text, color = "#2563eb") {
   progressFill.style.width = percent + "%";
+  progressFill.style.background = color;
   loadingText.textContent = text;
+  loadingText.style.color = color;
 }
 
 async function fetchCSV(url) {
   const response = await fetch(url);
   if (!response.ok) throw new Error("Failed to fetch");
   const text = await response.text();
-  return text.trim().split("\n").length - 1; // minus header
+  return text.trim().split("\n").length - 1;
 }
 
 async function loadAllSheets() {
@@ -45,18 +47,24 @@ async function loadAllSheets() {
     const remarksRows = await fetchCSV(SHEETS.remarks);
     remarksCountEl.textContent = remarksRows.toLocaleString();
 
-    updateProgress(100, "All Data Loaded Successfully ✔");
+    updateProgress(
+      100,
+      "All Data Loaded Successfully ✔",
+      "#16a34a"  // GREEN
+    );
 
   } catch (error) {
-    loadingText.textContent = "Error loading data ❌";
-    progressFill.style.background = "#dc2626";
+    updateProgress(
+      100,
+      "Error loading data ❌",
+      "#dc2626" // RED
+    );
     console.error(error);
   }
 }
 
 refreshBtn.addEventListener("click", () => {
   updateProgress(0, "Refreshing...");
-  progressFill.style.background = "#2563eb";
   loadAllSheets();
 });
 
