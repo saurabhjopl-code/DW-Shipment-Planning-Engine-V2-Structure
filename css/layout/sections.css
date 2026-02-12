@@ -1,0 +1,39 @@
+/* Modern Row Strip */
+
+.row-strip-modern {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 14px 32px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border);
+}
+
+.row-metric {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.metric-label {
+  font-weight: 500;
+}
+
+.metric-value {
+  background: #eef2ff;
+  color: var(--primary);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.metric-dot {
+  width: 4px;
+  height: 4px;
+  background: #d1d5db;
+  border-radius: 50%;
+}
