@@ -16,7 +16,8 @@ const SHEETS = {
       "Uniware SKU",
       "Style ID",
       "Size"
-    ]
+    ],
+    numericFields: ["Quantity"]
   },
   fc: {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_Ko_tmhbtxctjkYQ7zu25YB5C0zQPwcaUrqAUbcPw4daPmROC3gLff-gz-jkehXJdJ78Kh3eSpwvx/pub?gid=1945669210&single=true&output=csv",
@@ -26,7 +27,8 @@ const SHEETS = {
       "MPSKU",
       "Channel ID",
       "Quantity"
-    ]
+    ],
+    numericFields: ["Quantity"]
   },
   uniware: {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_Ko_tmhbtxctjkYQ7zu25YB5C0zQPwcaUrqAUbcPw4daPmROC3gLff-gz-jkehXJdJ78Kh3eSpwvx/pub?gid=1998228798&single=true&output=csv",
@@ -34,7 +36,8 @@ const SHEETS = {
       "Uniware SKU",
       "Quantity",
       "Allocate Quantity"
-    ]
+    ],
+    numericFields: ["Quantity", "Allocate Quantity"]
   },
   remarks: {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_Ko_tmhbtxctjkYQ7zu25YB5C0zQPwcaUrqAUbcPw4daPmROC3gLff-gz-jkehXJdJ78Kh3eSpwvx/pub?gid=218928762&single=true&output=csv",
@@ -42,12 +45,13 @@ const SHEETS = {
       "Style ID",
       "Category",
       "Company Remark"
-    ]
+    ],
+    numericFields: []
   }
 };
 
 // ===============================
-// DOM ELEMENTS
+// DOM
 // ===============================
 
 const progressFill = document.getElementById("progressFill");
@@ -61,7 +65,7 @@ const remarksCountEl = document.getElementById("remarksCount");
 const refreshBtn = document.getElementById("refreshBtn");
 
 // ===============================
-// GLOBAL STATE
+// STATE
 // ===============================
 
 export const appState = {
@@ -86,32 +90,61 @@ function parseCSV(text) {
   const rows = text.trim().split("\n");
   const headers = rows[0].split(",").map(h => h.trim());
 
-  const data = rows.slice(1).map(row => {
+  const data = rows.slice(1).map((row, rowIndex) => {
     const values = row.split(",");
     const obj = {};
     headers.forEach((header, index) => {
       obj[header] = values[index] ? values[index].trim() : "";
     });
+    obj.__rowNumber = rowIndex + 2; // actual row in sheet
     return obj;
   });
 
   return { headers, data };
 }
 
-async function fetchAndValidate(sheetConfig) {
+function validateNumeric(data, fields, sheetName) {
+  for (let row of data) {
+    for (let field of fields) {
+      if (row[field] === "") continue;
+
+      const value = Number(row[field]);
+
+      if (isNaN(value)) {
+        throw new Error(
+          `${sheetName}: Non-numeric value in "${field}" at row ${row.__rowNumber}`
+        );
+      }
+
+      if (value < 0) {
+        throw new Error(
+          `${sheetName}: Negative value in "${field}" at row ${row.__rowNumber}`
+        );
+      }
+
+      row[field] = value; // convert to number
+    }
+  }
+}
+
+async function fetchAndValidate(sheetKey, sheetConfig) {
   const response = await fetch(sheetConfig.url);
   if (!response.ok) throw new Error("Failed to fetch");
 
   const text = await response.text();
   const { headers, data } = parseCSV(text);
 
+  // Header validation
   const missing = sheetConfig.requiredHeaders.filter(
     required => !headers.includes(required)
   );
 
   if (missing.length > 0) {
-    throw new Error(`Missing Headers: ${missing.join(", ")}`);
+    throw new Error(`${sheetKey}: Missing Headers: ${missing.join(", ")}`);
   }
+
+  // Numeric validation
+  validateNumeric(data, sheetConfig.numericFields, sheetKey);
 
   return data;
 }
@@ -123,22 +156,22 @@ async function fetchAndValidate(sheetConfig) {
 async function loadAllSheets() {
   try {
     updateProgress(10, "Validating Sale 30D...");
-    const saleData = await fetchAndValidate(SHEETS.sale);
+    const saleData = await fetchAndValidate("Sale 30D", SHEETS.sale);
     appState.sale = saleData;
     saleCountEl.textContent = saleData.length.toLocaleString();
 
     updateProgress(30, "Validating FC Stock...");
-    const fcData = await fetchAndValidate(SHEETS.fc);
+    const fcData = await fetchAndValidate("FC Stock", SHEETS.fc);
     appState.fc = fcData;
     fcCountEl.textContent = fcData.length.toLocaleString();
 
     updateProgress(55, "Validating Uniware Stock...");
-    const uniwareData = await fetchAndValidate(SHEETS.uniware);
+    const uniwareData = await fetchAndValidate("Uniware Stock", SHEETS.uniware);
     appState.uniware = uniwareData;
     uniwareCountEl.textContent = uniwareData.length.toLocaleString();
 
     updateProgress(80, "Validating Company Remarks...");
-    const remarksData = await fetchAndValidate(SHEETS.remarks);
+    const remarksData = await fetchAndValidate("Company Remarks", SHEETS.remarks);
     appState.remarks = remarksData;
     remarksCountEl.textContent = remarksData.length.toLocaleString();
 
@@ -153,7 +186,7 @@ async function loadAllSheets() {
   } catch (error) {
     updateProgress(
       100,
-      "Header Validation Failed ❌",
+      "Validation Failed ❌",
       "#dc2626"
     );
     console.error("Validation Error:", error.message);
