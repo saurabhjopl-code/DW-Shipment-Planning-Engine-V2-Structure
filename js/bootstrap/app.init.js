@@ -1,3 +1,7 @@
+// ===============================
+// SHEET CONFIG
+// ===============================
+
 const SHEETS = {
   sale: {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_Ko_tmhbtxctjkYQ7zu25YB5C0zQPwcaUrqAUbcPw4daPmROC3gLff-gz-jkehXJdJ78Kh3eSpwvx/pub?gid=2115981230&single=true&output=csv",
@@ -42,6 +46,10 @@ const SHEETS = {
   }
 };
 
+// ===============================
+// DOM ELEMENTS
+// ===============================
+
 const progressFill = document.getElementById("progressFill");
 const loadingText = document.getElementById("loadingText");
 
@@ -52,6 +60,21 @@ const remarksCountEl = document.getElementById("remarksCount");
 
 const refreshBtn = document.getElementById("refreshBtn");
 
+// ===============================
+// GLOBAL STATE
+// ===============================
+
+export const appState = {
+  sale: [],
+  fc: [],
+  uniware: [],
+  remarks: []
+};
+
+// ===============================
+// HELPERS
+// ===============================
+
 function updateProgress(percent, text, color = "#2563eb") {
   progressFill.style.width = percent + "%";
   progressFill.style.background = color;
@@ -59,49 +82,65 @@ function updateProgress(percent, text, color = "#2563eb") {
   loadingText.style.color = color;
 }
 
+function parseCSV(text) {
+  const rows = text.trim().split("\n");
+  const headers = rows[0].split(",").map(h => h.trim());
+
+  const data = rows.slice(1).map(row => {
+    const values = row.split(",");
+    const obj = {};
+    headers.forEach((header, index) => {
+      obj[header] = values[index] ? values[index].trim() : "";
+    });
+    return obj;
+  });
+
+  return { headers, data };
+}
+
 async function fetchAndValidate(sheetConfig) {
   const response = await fetch(sheetConfig.url);
   if (!response.ok) throw new Error("Failed to fetch");
 
   const text = await response.text();
-  const rows = text.trim().split("\n");
-
-  if (rows.length === 0) {
-    throw new Error("Sheet is empty");
-  }
-
-  const headers = rows[0].split(",").map(h => h.trim());
+  const { headers, data } = parseCSV(text);
 
   const missing = sheetConfig.requiredHeaders.filter(
     required => !headers.includes(required)
   );
 
   if (missing.length > 0) {
-    throw new Error(
-      `Missing Headers: ${missing.join(", ")}`
-    );
+    throw new Error(`Missing Headers: ${missing.join(", ")}`);
   }
 
-  return rows.length - 1; // row count excluding header
+  return data;
 }
+
+// ===============================
+// LOAD FLOW
+// ===============================
 
 async function loadAllSheets() {
   try {
     updateProgress(10, "Validating Sale 30D...");
-    const saleRows = await fetchAndValidate(SHEETS.sale);
-    saleCountEl.textContent = saleRows.toLocaleString();
+    const saleData = await fetchAndValidate(SHEETS.sale);
+    appState.sale = saleData;
+    saleCountEl.textContent = saleData.length.toLocaleString();
 
     updateProgress(30, "Validating FC Stock...");
-    const fcRows = await fetchAndValidate(SHEETS.fc);
-    fcCountEl.textContent = fcRows.toLocaleString();
+    const fcData = await fetchAndValidate(SHEETS.fc);
+    appState.fc = fcData;
+    fcCountEl.textContent = fcData.length.toLocaleString();
 
     updateProgress(55, "Validating Uniware Stock...");
-    const uniwareRows = await fetchAndValidate(SHEETS.uniware);
-    uniwareCountEl.textContent = uniwareRows.toLocaleString();
+    const uniwareData = await fetchAndValidate(SHEETS.uniware);
+    appState.uniware = uniwareData;
+    uniwareCountEl.textContent = uniwareData.length.toLocaleString();
 
     updateProgress(80, "Validating Company Remarks...");
-    const remarksRows = await fetchAndValidate(SHEETS.remarks);
-    remarksCountEl.textContent = remarksRows.toLocaleString();
+    const remarksData = await fetchAndValidate(SHEETS.remarks);
+    appState.remarks = remarksData;
+    remarksCountEl.textContent = remarksData.length.toLocaleString();
 
     updateProgress(
       100,
@@ -109,13 +148,14 @@ async function loadAllSheets() {
       "#16a34a"
     );
 
+    console.log("App State Loaded:", appState);
+
   } catch (error) {
     updateProgress(
       100,
       "Header Validation Failed ❌",
       "#dc2626"
     );
-
     console.error("Validation Error:", error.message);
   }
 }
@@ -126,4 +166,3 @@ refreshBtn.addEventListener("click", () => {
 });
 
 loadAllSheets();
-
