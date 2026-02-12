@@ -1,30 +1,23 @@
 // ==========================================
-// ROBUST DW DISTRIBUTION ENGINE
+// DISTRIBUTION ENGINE (CONSOLIDATED)
 // ==========================================
 
 export function runDistributionEngine(appState) {
 
-  const totalUnits = appState.drrData.reduce(
-    (sum, item) => sum + (item.totalUnits30D || 0),
-    0
-  );
-
-  // Build MPSKU → Uniware SKU map
+  // Build MPSKU → Uniware map
   const mpskuToUSKU = {};
   appState.sale.forEach(row => {
-    if (row["MPSKU"] && row["Uniware SKU"]) {
-      mpskuToUSKU[row["MPSKU"]] = row["Uniware SKU"];
-    }
+    mpskuToUSKU[row["MPSKU"]] = row["Uniware SKU"];
   });
 
-  // Group rows by Uniware SKU
+  // Group by USKU
   const uskuGroups = {};
 
   appState.drrData.forEach(item => {
 
     const usku = mpskuToUSKU[item.MPSKU] || null;
 
-    item.usku = usku;   // assign early
+    item.usku = usku;
 
     if (!uskuGroups[usku]) {
       uskuGroups[usku] = {
@@ -33,40 +26,29 @@ export function runDistributionEngine(appState) {
       };
     }
 
-    uskuGroups[usku].totalUnits += item.totalUnits30D || 0;
+    uskuGroups[usku].totalUnits += item.totalUnits30D;
     uskuGroups[usku].rows.push(item);
   });
 
-  // Build Allocation map
-  const allocationMap = {};
-  appState.uniware.forEach(row => {
-    allocationMap[row["Uniware SKU"]] = Number(row["Allocate Quantity"]) || 0;
-  });
-
-  // Process each Uniware group
   Object.keys(uskuGroups).forEach(usku => {
 
     const group = uskuGroups[usku];
     const uskuUnits = group.totalUnits || 0;
 
-    const uskuDW = totalUnits === 0 ? 0 : uskuUnits / totalUnits;
+    const allocateQty =
+      appState.uniwareConsolidated[usku]?.allocateQty || 0;
 
-    const allocateQty = allocationMap[usku] || 0;
-
-    const sQty = Math.floor(allocateQty * uskuDW);
+    const sQty = allocateQty;
 
     group.rows.forEach(item => {
 
       const mpskuDW = uskuUnits === 0
         ? 0
-        : (item.totalUnits30D || 0) / uskuUnits;
+        : item.totalUnits30D / uskuUnits;
 
       const spQty = Math.floor(sQty * mpskuDW);
 
-      item.uskuDW = uskuDW || 0;
-      item.sQty = sQty || 0;
-      item.mpskuDW = mpskuDW || 0;
-      item.spQty = spQty || 0;   // 🔥 always numeric
+      item.spQty = spQty || 0;
     });
   });
 
