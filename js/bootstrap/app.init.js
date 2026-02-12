@@ -67,6 +67,8 @@ const refreshBtn = document.getElementById("refreshBtn");
 const exportShipmentBtn = document.querySelector(".btn.primary");
 const exportRecallBtn = document.querySelector(".btn.danger");
 
+const tabButtons = document.querySelectorAll(".tab");
+
 // ===============================
 // APP STATE
 // ===============================
@@ -81,7 +83,9 @@ export const appState = {
   fcConsolidated: {},
   uniwareConsolidated: {},
 
-  drrData: []
+  drrData: [],
+
+  activeMP: "ALL"
 };
 
 // ===============================
@@ -115,15 +119,11 @@ function validateNumeric(data, fields, sheetName) {
   for (let row of data) {
     for (let field of fields) {
       if (row[field] === "") continue;
-
       const value = Number(row[field]);
-
       if (isNaN(value))
         throw new Error(`${sheetName}: Non-numeric ${field}`);
-
       if (value < 0)
         throw new Error(`${sheetName}: Negative ${field}`);
-
       row[field] = value;
     }
   }
@@ -140,13 +140,32 @@ async function fetchAndValidate(sheetKey, sheetConfig) {
     required => !headers.includes(required)
   );
 
-  if (missing.length > 0) {
+  if (missing.length > 0)
     throw new Error(`${sheetKey}: Missing ${missing.join(", ")}`);
-  }
 
   validateNumeric(data, sheetConfig.numericFields, sheetKey);
-
   return data;
+}
+
+// ===============================
+// FILTER LAYER
+// ===============================
+
+function getFilteredData() {
+  if (appState.activeMP === "ALL")
+    return appState.drrData;
+
+  return appState.drrData.filter(
+    item => item.MP === appState.activeMP
+  );
+}
+
+function renderAll() {
+  const filtered = getFilteredData();
+
+  renderFCSummary({ ...appState, drrData: filtered });
+  renderShipmentSummary({ ...appState, drrData: filtered });
+  renderShipmentReport({ ...appState, drrData: filtered });
 }
 
 // ===============================
@@ -194,17 +213,12 @@ async function loadAllSheets() {
     updateProgress(93, "Calculating Final Shipment...");
     runFinalShipmentEngine(appState);
 
-    updateProgress(96, "Rendering Summary...");
-    renderFCSummary(appState);
-    renderShipmentSummary(appState);
-
-    updateProgress(98, "Rendering Shipment Report...");
-    renderShipmentReport(appState);
+    updateProgress(98, "Rendering Dashboard...");
+    renderAll();
 
     updateProgress(100, "All Data Loaded Successfully ✔", "#16a34a");
 
   } catch (error) {
-
     updateProgress(100, "Validation Failed ❌", "#dc2626");
     console.error(error);
   }
@@ -220,11 +234,38 @@ refreshBtn.addEventListener("click", () => {
 });
 
 exportShipmentBtn.addEventListener("click", () => {
-  exportShipment(appState);
+  const filtered = getFilteredData();
+  exportShipment({ ...appState, drrData: filtered });
 });
 
 exportRecallBtn.addEventListener("click", () => {
-  exportRecall(appState);
+  const filtered = getFilteredData();
+  exportRecall({ ...appState, drrData: filtered });
+});
+
+// TAB EVENTS
+tabButtons.forEach(tab => {
+
+  tab.addEventListener("click", () => {
+
+    tabButtons.forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+
+    const label = tab.textContent.trim();
+
+    if (label === "Amazon IN")
+      appState.activeMP = "Amazon IN";
+    else if (label === "Flipkart")
+      appState.activeMP = "Flipkart";
+    else if (label === "Myntra")
+      appState.activeMP = "Myntra";
+    else if (label === "SELLER")
+      appState.activeMP = "SELLER";
+    else
+      appState.activeMP = "ALL";
+
+    renderAll();
+  });
 });
 
 loadAllSheets();
