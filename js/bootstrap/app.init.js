@@ -8,6 +8,9 @@ import { runRecallEngine } from "../core/demand/recall.engine.js";
 import { runDistributionEngine } from "../core/distribution/distribution.engine.js";
 import { runFinalShipmentEngine } from "../core/shipment/final-shipment.engine.js";
 
+import { runDWEngine } from "../core/analytics/dw.engine.js";
+import { renderDW } from "../ui/analytics/dw.render.js";
+
 import { renderFCSummary } from "../ui/summary/fc-summary.render.js";
 import { renderShipmentSummary } from "../ui/summary/shipment-summary.render.js";
 import { renderShipmentReport } from "../ui/report/shipment-report.render.js";
@@ -84,6 +87,7 @@ export const appState = {
   uniwareConsolidated: {},
 
   drrData: [],
+  dwData: [],
 
   activeMP: "ALL"
 };
@@ -164,14 +168,31 @@ function getFilteredData() {
     if (target === "AMAZON IN") return mp.includes("AMAZON");
     if (target === "FLIPKART") return mp.includes("FLIPKART");
     if (target === "MYNTRA") return mp.includes("MYNTRA");
-    if (target === "SELLER") return mp.includes("SELLER");
 
     return true;
   });
 }
 
+// ===============================
+// RENDER CONTROL
+// ===============================
+
 function renderAll() {
+
+  if (appState.activeMP === "DEMAND WEIGHT") {
+
+    document.getElementById("normalSection").style.display = "none";
+    document.getElementById("dwSection").style.display = "block";
+
+    renderDW(appState);
+    return;
+  }
+
+  document.getElementById("normalSection").style.display = "block";
+  document.getElementById("dwSection").style.display = "none";
+
   const filtered = getFilteredData();
+
   renderFCSummary({ ...appState, drrData: filtered });
   renderShipmentSummary({ ...appState, drrData: filtered });
   renderShipmentReport({ ...appState, drrData: filtered });
@@ -210,6 +231,8 @@ async function loadAllSheets() {
     runRecallEngine(appState);
     runDistributionEngine(appState);
     runFinalShipmentEngine(appState);
+
+    runDWEngine(appState); // 🔥 NEW — SAFE
 
     updateProgress(95, "Rendering...");
     renderAll();
@@ -250,7 +273,7 @@ tabButtons.forEach(tab => {
     if (label === "Amazon IN") appState.activeMP = "AMAZON IN";
     else if (label === "Flipkart") appState.activeMP = "FLIPKART";
     else if (label === "Myntra") appState.activeMP = "MYNTRA";
-    else if (label === "SELLER") appState.activeMP = "SELLER";
+    else if (label === "Demand Weight") appState.activeMP = "DEMAND WEIGHT";
     else appState.activeMP = "ALL";
 
     renderAll();
