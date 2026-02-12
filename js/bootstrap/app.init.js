@@ -4,9 +4,10 @@ import { runRequiredEngine } from "../core/demand/required.engine.js";
 import { runRecallEngine } from "../core/demand/recall.engine.js";
 import { runDistributionEngine } from "../core/distribution/distribution.engine.js";
 import { runFinalShipmentEngine } from "../core/shipment/final-shipment.engine.js";
+import { renderFCSummary } from "../ui/summary/fc-summary.render.js";
 
 // ===============================
-// CONFIG SAME AS BEFORE
+// CONFIG
 // ===============================
 
 const SHEETS = {
@@ -137,13 +138,12 @@ async function loadAllSheets() {
 
     updateProgress(85, "Running Distribution Engine...");
     runDistributionEngine(appState);
-
-    updateProgress(95, "Calculating Final Shipment...");
     runFinalShipmentEngine(appState);
 
-    updateProgress(100, "All Data Loaded Successfully ✔", "#16a34a");
+    updateProgress(95, "Rendering FC Summary...");
+    renderFCSummary(appState);
 
-    console.log("FINAL ENGINE OUTPUT:", appState.drrData);
+    updateProgress(100, "All Data Loaded Successfully ✔", "#16a34a");
 
   } catch (error) {
     updateProgress(100, "Validation Failed ❌", "#dc2626");
