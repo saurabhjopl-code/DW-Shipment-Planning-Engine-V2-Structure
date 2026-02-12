@@ -1,19 +1,41 @@
+/* ===============================
+   TABLE STYLING - CENTER ALIGNED
+================================= */
+
 table {
   width: 100%;
   border-collapse: collapse;
+  text-align: center;
 }
 
 thead {
   background: #f9fafb;
 }
 
-th, td {
-  padding: 10px;
+th {
+  padding: 12px 10px;
   border-bottom: 1px solid var(--border);
   font-size: 13px;
-  text-align: left;
+  font-weight: 600;
+  text-align: center;
+}
+
+td {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  text-align: center;
+}
+
+tbody tr {
+  transition: background 0.2s ease;
 }
 
 tbody tr:hover {
   background: #f3f4f6;
+}
+
+/* Make numbers look cleaner */
+td {
+  font-variant-numeric: tabular-nums;
 }
