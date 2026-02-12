@@ -1,12 +1,12 @@
 // ==========================================
-// FC SUMMARY RENDER WITH GRAND TOTAL
+// FC SUMMARY RENDER WITH GRAND TOTAL (STABLE)
 // ==========================================
 
 export function renderFCSummary(appState) {
 
-  const tbody = document.querySelector(
-    ".content-container .card:nth-child(1) tbody"
-  );
+  const tbody = document
+    .getElementById("fcSummaryTable")
+    .querySelector("tbody");
 
   tbody.innerHTML = "";
 
@@ -53,7 +53,7 @@ export function renderFCSummary(appState) {
     tbody.appendChild(tr);
   });
 
-  // Grand Total Row
+  // GRAND TOTAL
   const grandDRR = grandSale / 30;
   const grandSC = grandDRR === 0 ? "∞" : (grandStock / grandDRR).toFixed(1);
 
