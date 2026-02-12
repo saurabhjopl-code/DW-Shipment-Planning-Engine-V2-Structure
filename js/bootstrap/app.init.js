@@ -12,6 +12,9 @@ import { renderFCSummary } from "../ui/summary/fc-summary.render.js";
 import { renderShipmentSummary } from "../ui/summary/shipment-summary.render.js";
 import { renderShipmentReport } from "../ui/report/shipment-report.render.js";
 
+import { exportShipment } from "../services/export/export-shipment.js";
+import { exportRecall } from "../services/export/export-recall.js";
+
 // ===============================
 // SHEET CONFIG
 // ===============================
@@ -60,6 +63,9 @@ const uniwareCountEl = document.getElementById("uniwareCount");
 const remarksCountEl = document.getElementById("remarksCount");
 
 const refreshBtn = document.getElementById("refreshBtn");
+
+const exportShipmentBtn = document.querySelector(".btn.primary");
+const exportRecallBtn = document.querySelector(".btn.danger");
 
 // ===============================
 // APP STATE
@@ -167,16 +173,8 @@ async function loadAllSheets() {
     appState.remarks = await fetchAndValidate("Remarks", SHEETS.remarks);
     remarksCountEl.textContent = appState.remarks.length.toLocaleString();
 
-    // ===============================
-    // CONSOLIDATION
-    // ===============================
-
     updateProgress(65, "Consolidating Data...");
     runConsolidationEngine(appState);
-
-    // ===============================
-    // DEMAND SIDE
-    // ===============================
 
     updateProgress(70, "Running DRR...");
     runDRREngine(appState);
@@ -190,19 +188,11 @@ async function loadAllSheets() {
     updateProgress(85, "Calculating Recall...");
     runRecallEngine(appState);
 
-    // ===============================
-    // SUPPLY SIDE
-    // ===============================
-
     updateProgress(90, "Running Distribution...");
     runDistributionEngine(appState);
 
     updateProgress(93, "Calculating Final Shipment...");
     runFinalShipmentEngine(appState);
-
-    // ===============================
-    // RENDER
-    // ===============================
 
     updateProgress(96, "Rendering Summary...");
     renderFCSummary(appState);
@@ -227,6 +217,14 @@ async function loadAllSheets() {
 refreshBtn.addEventListener("click", () => {
   updateProgress(0, "Refreshing...");
   loadAllSheets();
+});
+
+exportShipmentBtn.addEventListener("click", () => {
+  exportShipment(appState);
+});
+
+exportRecallBtn.addEventListener("click", () => {
+  exportRecall(appState);
 });
 
 loadAllSheets();
