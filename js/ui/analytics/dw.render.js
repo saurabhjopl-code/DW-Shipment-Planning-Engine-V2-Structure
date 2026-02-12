@@ -1,10 +1,9 @@
 // ==========================================
-// DEMAND WEIGHT RENDER (SAFE VERSION)
+// DEMAND WEIGHT RENDER (EXPANDABLE GLOBAL)
 // ==========================================
 
 export function renderDW(appState) {
 
-  // Find shipment report card body and reuse it
   const shipmentCard = document.querySelector(
     ".content-container .card:nth-child(3)"
   );
@@ -17,12 +16,9 @@ export function renderDW(appState) {
       <thead>
         <tr>
           <th>Uniware SKU</th>
-          <th>MP SKU</th>
-          <th>30D Units</th>
-          <th>Internal DW</th>
+          <th>USKU 30D Sale (Total)</th>
           <th>Allocate Qty</th>
-          <th>Calculated Split</th>
-          <th>SP Qty (Engine)</th>
+          <th>Expand</th>
         </tr>
       </thead>
       <tbody id="dwBody"></tbody>
@@ -32,31 +28,77 @@ export function renderDW(appState) {
   const tbody = document.getElementById("dwBody");
   if (!tbody) return;
 
-  tbody.innerHTML = "";
-
-  if (!appState.dwData || appState.dwData.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="7">No data available.</td>
-      </tr>
-    `;
-    return;
-  }
+  // Group by USKU
+  const uskuGroups = {};
 
   appState.dwData.forEach(row => {
 
+    if (!uskuGroups[row.usku]) {
+      uskuGroups[row.usku] = {
+        totalUnits: 0,
+        allocateQty: row.allocateQty,
+        rows: []
+      };
+    }
+
+    uskuGroups[row.usku].totalUnits += row.totalUnits;
+    uskuGroups[row.usku].rows.push(row);
+  });
+
+  Object.keys(uskuGroups).forEach(usku => {
+
+    const group = uskuGroups[usku];
+
     const tr = document.createElement("tr");
+    tr.style.fontWeight = "600";
+    tr.style.background = "#f9fafb";
 
     tr.innerHTML = `
-      <td>${row.usku}</td>
-      <td>${row.mpsku}</td>
-      <td>${row.totalUnits.toLocaleString()}</td>
-      <td>${row.internalDW.toFixed(4)}</td>
-      <td>${row.allocateQty.toLocaleString()}</td>
-      <td>${row.calculatedSplit.toLocaleString()}</td>
-      <td>${row.spQty.toLocaleString()}</td>
+      <td>${usku}</td>
+      <td>${group.totalUnits.toLocaleString()}</td>
+      <td>${group.allocateQty.toLocaleString()}</td>
+      <td><button class="dw-toggle">+</button></td>
     `;
 
     tbody.appendChild(tr);
+
+    const childContainer = document.createElement("tr");
+    childContainer.style.display = "none";
+
+    childContainer.innerHTML = `
+      <td colspan="4">
+        <table style="width:100%; margin-top:8px;">
+          <thead>
+            <tr>
+              <th>MP SKU</th>
+              <th>30D Sale</th>
+              <th>Internal DW</th>
+              <th>Calculated Split</th>
+              <th>SP Qty (Engine)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${group.rows.map(r => `
+              <tr>
+                <td>${r.mpsku}</td>
+                <td>${r.totalUnits.toLocaleString()}</td>
+                <td>${r.internalDW.toFixed(4)}</td>
+                <td>${r.calculatedSplit.toLocaleString()}</td>
+                <td>${r.spQty.toLocaleString()}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </td>
+    `;
+
+    tbody.appendChild(childContainer);
+
+    tr.querySelector(".dw-toggle").addEventListener("click", e => {
+
+      const isHidden = childContainer.style.display === "none";
+      childContainer.style.display = isHidden ? "table-row" : "none";
+      e.target.textContent = isHidden ? "-" : "+";
+    });
   });
 }
