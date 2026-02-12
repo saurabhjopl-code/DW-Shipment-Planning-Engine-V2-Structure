@@ -1,6 +1,7 @@
 import { runDRREngine } from "../core/demand/drr.engine.js";
 import { runSCEngine } from "../core/demand/sc.engine.js";
 import { runRequiredEngine } from "../core/demand/required.engine.js";
+import { runRecallEngine } from "../core/demand/recall.engine.js";
 
 // ===============================
 // SHEET CONFIG
@@ -150,8 +151,11 @@ async function loadAllSheets() {
     updateProgress(80, "Running SC Engine...");
     runSCEngine(appState);
 
-    updateProgress(90, "Calculating Required Shipment...");
+    updateProgress(85, "Calculating Required Shipment...");
     runRequiredEngine(appState);
+
+    updateProgress(95, "Calculating Recall...");
+    runRecallEngine(appState);
 
     updateProgress(100, "All Data Loaded Successfully ✔", "#16a34a");
 
