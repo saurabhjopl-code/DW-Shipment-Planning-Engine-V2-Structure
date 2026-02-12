@@ -1,14 +1,14 @@
 // ==========================================
-// FINAL SHIPMENT ENGINE (WITH SELLER POOL)
+// FINAL SHIPMENT ENGINE (SELLER POOL FIXED)
 // ==========================================
 
 export function runFinalShipmentEngine(appState) {
 
-  // Build Seller Pool from Uniware stock
+  // Step 0: Seller Pool = Allocate Quantity ONLY
   const sellerPool = {};
 
   Object.values(appState.uniwareConsolidated).forEach(item => {
-    sellerPool[item.usku] = item.totalStock || 0;
+    sellerPool[item.usku] = item.allocateQty || 0;
   });
 
   // Step 1: Calculate UnderSupplyGap
@@ -38,6 +38,8 @@ export function runFinalShipmentEngine(appState) {
 
     let available = sellerPool[usku] || 0;
 
+    if (available <= 0) return;
+
     const rows = uskuGroups[usku]
       .filter(r => r.underSupplyGap > 0)
       .sort((a, b) => b.underSupplyGap - a.underSupplyGap);
@@ -53,7 +55,7 @@ export function runFinalShipmentEngine(appState) {
     }
   });
 
-  // Step 4: Compute Final Shipment
+  // Step 4: Final Shipment
   appState.drrData.forEach(item => {
 
     const spQty = item.spQty || 0;
