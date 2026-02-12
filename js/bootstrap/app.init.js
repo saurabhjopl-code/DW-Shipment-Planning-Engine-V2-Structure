@@ -1,51 +1,36 @@
+import { runDRREngine } from "../core/demand/drr.engine.js";
+
 // ===============================
-// SHEET CONFIG
+// SHEET CONFIG (unchanged)
 // ===============================
 
 const SHEETS = {
   sale: {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_Ko_tmhbtxctjkYQ7zu25YB5C0zQPwcaUrqAUbcPw4daPmROC3gLff-gz-jkehXJdJ78Kh3eSpwvx/pub?gid=2115981230&single=true&output=csv",
     requiredHeaders: [
-      "MP",
-      "Date",
-      "MPSKU",
-      "Channel ID",
-      "Quantity",
-      "Warehouse Id",
-      "Fulfillment Type",
-      "Uniware SKU",
-      "Style ID",
-      "Size"
+      "MP","Date","MPSKU","Channel ID","Quantity",
+      "Warehouse Id","Fulfillment Type","Uniware SKU",
+      "Style ID","Size"
     ],
     numericFields: ["Quantity"]
   },
   fc: {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_Ko_tmhbtxctjkYQ7zu25YB5C0zQPwcaUrqAUbcPw4daPmROC3gLff-gz-jkehXJdJ78Kh3eSpwvx/pub?gid=1945669210&single=true&output=csv",
     requiredHeaders: [
-      "MP",
-      "Warehouse Id",
-      "MPSKU",
-      "Channel ID",
-      "Quantity"
+      "MP","Warehouse Id","MPSKU","Channel ID","Quantity"
     ],
     numericFields: ["Quantity"]
   },
   uniware: {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_Ko_tmhbtxctjkYQ7zu25YB5C0zQPwcaUrqAUbcPw4daPmROC3gLff-gz-jkehXJdJ78Kh3eSpwvx/pub?gid=1998228798&single=true&output=csv",
     requiredHeaders: [
-      "Uniware SKU",
-      "Quantity",
-      "Allocate Quantity"
+      "Uniware SKU","Quantity","Allocate Quantity"
     ],
-    numericFields: ["Quantity", "Allocate Quantity"]
+    numericFields: ["Quantity","Allocate Quantity"]
   },
   remarks: {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_Ko_tmhbtxctjkYQ7zu25YB5C0zQPwcaUrqAUbcPw4daPmROC3gLff-gz-jkehXJdJ78Kh3eSpwvx/pub?gid=218928762&single=true&output=csv",
-    requiredHeaders: [
-      "Style ID",
-      "Category",
-      "Company Remark"
-    ],
+    requiredHeaders: ["Style ID","Category","Company Remark"],
     numericFields: []
   }
 };
@@ -72,11 +57,12 @@ export const appState = {
   sale: [],
   fc: [],
   uniware: [],
-  remarks: []
+  remarks: [],
+  drrData: []
 };
 
 // ===============================
-// HELPERS
+// HELPERS (same as before)
 // ===============================
 
 function updateProgress(percent, text, color = "#2563eb") {
@@ -90,13 +76,12 @@ function parseCSV(text) {
   const rows = text.trim().split("\n");
   const headers = rows[0].split(",").map(h => h.trim());
 
-  const data = rows.slice(1).map((row, rowIndex) => {
+  const data = rows.slice(1).map(row => {
     const values = row.split(",");
     const obj = {};
     headers.forEach((header, index) => {
       obj[header] = values[index] ? values[index].trim() : "";
     });
-    obj.__rowNumber = rowIndex + 2; // actual row in sheet
     return obj;
   });
 
@@ -107,22 +92,10 @@ function validateNumeric(data, fields, sheetName) {
   for (let row of data) {
     for (let field of fields) {
       if (row[field] === "") continue;
-
       const value = Number(row[field]);
-
-      if (isNaN(value)) {
-        throw new Error(
-          `${sheetName}: Non-numeric value in "${field}" at row ${row.__rowNumber}`
-        );
-      }
-
-      if (value < 0) {
-        throw new Error(
-          `${sheetName}: Negative value in "${field}" at row ${row.__rowNumber}`
-        );
-      }
-
-      row[field] = value; // convert to number
+      if (isNaN(value)) throw new Error(`${sheetName}: Non-numeric ${field}`);
+      if (value < 0) throw new Error(`${sheetName}: Negative ${field}`);
+      row[field] = value;
     }
   }
 }
@@ -134,16 +107,14 @@ async function fetchAndValidate(sheetKey, sheetConfig) {
   const text = await response.text();
   const { headers, data } = parseCSV(text);
 
-  // Header validation
   const missing = sheetConfig.requiredHeaders.filter(
     required => !headers.includes(required)
   );
 
   if (missing.length > 0) {
-    throw new Error(`${sheetKey}: Missing Headers: ${missing.join(", ")}`);
+    throw new Error(`${sheetKey}: Missing ${missing.join(", ")}`);
   }
 
-  // Numeric validation
   validateNumeric(data, sheetConfig.numericFields, sheetKey);
 
   return data;
@@ -155,41 +126,30 @@ async function fetchAndValidate(sheetKey, sheetConfig) {
 
 async function loadAllSheets() {
   try {
-    updateProgress(10, "Validating Sale 30D...");
-    const saleData = await fetchAndValidate("Sale 30D", SHEETS.sale);
-    appState.sale = saleData;
-    saleCountEl.textContent = saleData.length.toLocaleString();
+    updateProgress(10, "Loading Sale 30D...");
+    appState.sale = await fetchAndValidate("Sale", SHEETS.sale);
+    saleCountEl.textContent = appState.sale.length.toLocaleString();
 
-    updateProgress(30, "Validating FC Stock...");
-    const fcData = await fetchAndValidate("FC Stock", SHEETS.fc);
-    appState.fc = fcData;
-    fcCountEl.textContent = fcData.length.toLocaleString();
+    updateProgress(30, "Loading FC Stock...");
+    appState.fc = await fetchAndValidate("FC", SHEETS.fc);
+    fcCountEl.textContent = appState.fc.length.toLocaleString();
 
-    updateProgress(55, "Validating Uniware Stock...");
-    const uniwareData = await fetchAndValidate("Uniware Stock", SHEETS.uniware);
-    appState.uniware = uniwareData;
-    uniwareCountEl.textContent = uniwareData.length.toLocaleString();
+    updateProgress(55, "Loading Uniware...");
+    appState.uniware = await fetchAndValidate("Uniware", SHEETS.uniware);
+    uniwareCountEl.textContent = appState.uniware.length.toLocaleString();
 
-    updateProgress(80, "Validating Company Remarks...");
-    const remarksData = await fetchAndValidate("Company Remarks", SHEETS.remarks);
-    appState.remarks = remarksData;
-    remarksCountEl.textContent = remarksData.length.toLocaleString();
+    updateProgress(75, "Loading Remarks...");
+    appState.remarks = await fetchAndValidate("Remarks", SHEETS.remarks);
+    remarksCountEl.textContent = appState.remarks.length.toLocaleString();
 
-    updateProgress(
-      100,
-      "All Data Loaded Successfully ✔",
-      "#16a34a"
-    );
+    updateProgress(90, "Running DRR Engine...");
+    runDRREngine(appState);
 
-    console.log("App State Loaded:", appState);
+    updateProgress(100, "All Data Loaded Successfully ✔", "#16a34a");
 
   } catch (error) {
-    updateProgress(
-      100,
-      "Validation Failed ❌",
-      "#dc2626"
-    );
-    console.error("Validation Error:", error.message);
+    updateProgress(100, "Validation Failed ❌", "#dc2626");
+    console.error(error);
   }
 }
 
