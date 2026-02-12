@@ -1,12 +1,7 @@
-// ==========================================
-// SHIPMENT REPORT WITH TARGET FC COLUMN
-// ==========================================
-
 export function renderShipmentReport(appState) {
 
-  const tbody = document
-    .getElementById("shipmentReportTable")
-    .querySelector("tbody");
+  const tbody = document.getElementById("shipmentReportBody");
+  if (!tbody) return;
 
   tbody.innerHTML = "";
 
@@ -29,28 +24,18 @@ export function renderShipmentReport(appState) {
       <td>${item.MP}</td>
       <td>${item.MPSKU}</td>
       <td>${item.warehouseId}</td>
-      <td>${item.targetFC || "-"}</td>
       <td>${item.usku || ""}</td>
       <td>${(item.totalUnits30D || 0).toLocaleString()}</td>
       <td>${(item.drr || 0).toFixed(2)}</td>
       <td>${(item.fcStock || 0).toLocaleString()}</td>
-      <td class="sc-cell">${stockCover === Infinity ? "∞" : (stockCover || 0).toFixed(1)}</td>
+      <td>${stockCover === Infinity ? "∞" : (stockCover || 0).toFixed(1)}</td>
       <td>${required.toLocaleString()}</td>
       <td>${spQty.toLocaleString()}</td>
-      <td class="final-cell">${finalShipment.toLocaleString()}</td>
+      <td>${finalShipment.toLocaleString()}</td>
       <td>${recall.toLocaleString()}</td>
+      <td>${item.targetFC || item.warehouseId}</td>
     `;
 
     tbody.appendChild(tr);
-
-    if (stockCover > 90) {
-      tr.querySelector(".sc-cell").style.color = "#dc2626";
-      tr.querySelector(".sc-cell").style.fontWeight = "600";
-    }
-
-    if (!item.isClosed && finalShipment < required) {
-      tr.querySelector(".final-cell").style.color = "#f59e0b";
-      tr.querySelector(".final-cell").style.fontWeight = "600";
-    }
   });
 }
