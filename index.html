@@ -35,7 +35,7 @@
     </div>
   </header>
 
-  <!-- LOADING BAR -->
+  <!-- LOADING -->
   <section class="loading-section">
     <div class="loading-left">
       <div class="progress-bar">
@@ -49,7 +49,7 @@
     </div>
   </section>
 
-  <!-- ROW COUNT STRIP -->
+  <!-- ROW STRIP -->
   <section class="row-strip-modern">
     <div class="row-metric">
       <span class="metric-label">Sale</span>
@@ -78,7 +78,7 @@
     </div>
   </section>
 
-  <!-- MP TABS -->
+  <!-- TABS -->
   <section class="tabs">
     <button class="tab active">Amazon IN</button>
     <button class="tab">Flipkart</button>
@@ -86,7 +86,7 @@
     <button class="tab">SELLER</button>
   </section>
 
-  <!-- MAIN CONTENT -->
+  <!-- CONTENT -->
   <section class="content-container">
 
     <!-- FC SUMMARY -->
@@ -102,7 +102,7 @@
             <th>Stock Cover</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="fcSummaryBody">
           <tr>
             <td colspan="5">Data will load after engine integration.</td>
           </tr>
@@ -110,7 +110,7 @@
       </table>
     </div>
 
-    <!-- SHIPMENT & RECALL SUMMARY -->
+    <!-- SHIPMENT SUMMARY -->
     <div class="card">
       <h2>Shipment & Recall Summary</h2>
       <table>
@@ -125,7 +125,7 @@
             <th>Recall Qty</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="shipmentSummaryBody">
           <tr>
             <td colspan="7">Data will load after engine integration.</td>
           </tr>
@@ -149,14 +149,14 @@
             <th>Stock Cover</th>
             <th>Actual Shipment</th>
             <th>SP-Qty</th>
-            <th>Target FC</th>
             <th>Final Shipment</th>
             <th>Recall</th>
+            <th>Target FC</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="shipmentReportBody">
           <tr>
-            <td colspan="12">Data will load after engine integration.</td>
+            <td colspan="13">Data will load after engine integration.</td>
           </tr>
         </tbody>
       </table>
@@ -168,4 +168,3 @@
 
 </body>
 </html>
-
