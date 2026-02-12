@@ -1,10 +1,12 @@
 /* ===============================
    TABLE STYLING - CENTER ALIGNED
+   WITH STICKY HEADER
 ================================= */
 
 table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   text-align: center;
 }
 
@@ -12,12 +14,17 @@ thead {
   background: #f9fafb;
 }
 
-th {
+thead th {
+  position: sticky;
+  top: 0;
+  background: #f9fafb;
+  z-index: 2;
   padding: 12px 10px;
   border-bottom: 1px solid var(--border);
   font-size: 13px;
   font-weight: 600;
   text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
 }
 
 td {
@@ -25,6 +32,7 @@ td {
   border-bottom: 1px solid var(--border);
   font-size: 13px;
   text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 tbody tr {
@@ -35,7 +43,8 @@ tbody tr:hover {
   background: #f3f4f6;
 }
 
-/* Make numbers look cleaner */
-td {
-  font-variant-numeric: tabular-nums;
+/* Make card scrollable if table is large */
+.card {
+  overflow: auto;
+  max-height: 500px;
 }
