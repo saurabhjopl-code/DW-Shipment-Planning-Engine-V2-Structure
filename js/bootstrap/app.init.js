@@ -8,9 +8,6 @@ import { runRecallEngine } from "../core/demand/recall.engine.js";
 import { runDistributionEngine } from "../core/distribution/distribution.engine.js";
 import { runFinalShipmentEngine } from "../core/shipment/final-shipment.engine.js";
 
-import { runDWEngine } from "../ui/analytics/dw.engine.js";
-import { renderDW } from "../ui/analytics/dw.render.js";
-
 import { renderFCSummary } from "../ui/summary/fc-summary.render.js";
 import { renderShipmentSummary } from "../ui/summary/shipment-summary.render.js";
 import { renderShipmentReport } from "../ui/report/shipment-report.render.js";
@@ -54,7 +51,7 @@ const SHEETS = {
 };
 
 // ===============================
-// DOM
+// DOM REFERENCES
 // ===============================
 
 const progressFill = document.getElementById("progressFill");
@@ -66,13 +63,14 @@ const uniwareCountEl = document.getElementById("uniwareCount");
 const remarksCountEl = document.getElementById("remarksCount");
 
 const refreshBtn = document.getElementById("refreshBtn");
+
 const exportShipmentBtn = document.querySelector(".btn.primary");
 const exportRecallBtn = document.querySelector(".btn.danger");
 
 const tabButtons = document.querySelectorAll(".tab");
 
 // ===============================
-// STATE
+// APP STATE
 // ===============================
 
 export const appState = {
@@ -80,12 +78,14 @@ export const appState = {
   fc: [],
   uniware: [],
   remarks: [],
+
   saleConsolidated: [],
   fcConsolidated: {},
   uniwareConsolidated: {},
+
   drrData: [],
-  dwData: [],
-  activeTab: "Amazon IN"
+
+  activeMP: "ALL"
 };
 
 // ===============================
@@ -120,8 +120,10 @@ function validateNumeric(data, fields, sheetName) {
     for (let field of fields) {
       if (row[field] === "") continue;
       const value = Number(row[field]);
-      if (isNaN(value)) throw new Error(`${sheetName}: Non-numeric ${field}`);
-      if (value < 0) throw new Error(`${sheetName}: Negative ${field}`);
+      if (isNaN(value))
+        throw new Error(`${sheetName}: Non-numeric ${field}`);
+      if (value < 0)
+        throw new Error(`${sheetName}: Negative ${field}`);
       row[field] = value;
     }
   }
@@ -146,26 +148,41 @@ async function fetchAndValidate(sheetKey, sheetConfig) {
 }
 
 // ===============================
-// RENDER CONTROL
+// FILTER
 // ===============================
 
+function getFilteredData() {
+
+  if (appState.activeMP === "ALL")
+    return appState.drrData;
+
+  const target = appState.activeMP.toUpperCase();
+
+  return appState.drrData.filter(item => {
+    const mp = (item.MP || "").toUpperCase();
+
+    if (target === "AMAZON IN") return mp.includes("AMAZON");
+    if (target === "FLIPKART") return mp.includes("FLIPKART");
+    if (target === "MYNTRA") return mp.includes("MYNTRA");
+    if (target === "SELLER") return mp.includes("SELLER");
+
+    return true;
+  });
+}
+
 function renderAll() {
-
-  if (appState.activeTab === "Demand Weight") {
-    renderDW(appState);
-    return;
-  }
-
-  renderFCSummary(appState);
-  renderShipmentSummary(appState);
-  renderShipmentReport(appState);
+  const filtered = getFilteredData();
+  renderFCSummary({ ...appState, drrData: filtered });
+  renderShipmentSummary({ ...appState, drrData: filtered });
+  renderShipmentReport({ ...appState, drrData: filtered });
 }
 
 // ===============================
-// MAIN LOAD
+// MAIN LOAD FLOW
 // ===============================
 
 async function loadAllSheets() {
+
   try {
 
     updateProgress(10, "Loading Sale...");
@@ -194,8 +211,6 @@ async function loadAllSheets() {
     runDistributionEngine(appState);
     runFinalShipmentEngine(appState);
 
-    runDWEngine(appState);
-
     updateProgress(95, "Rendering...");
     renderAll();
 
@@ -217,21 +232,29 @@ refreshBtn.addEventListener("click", () => {
 });
 
 exportShipmentBtn.addEventListener("click", () => {
-  exportShipment(appState);
+  exportShipment({ ...appState, drrData: getFilteredData() });
 });
 
 exportRecallBtn.addEventListener("click", () => {
-  exportRecall(appState);
+  exportRecall({ ...appState, drrData: getFilteredData() });
 });
 
 tabButtons.forEach(tab => {
   tab.addEventListener("click", () => {
+
     tabButtons.forEach(t => t.classList.remove("active"));
     tab.classList.add("active");
-    appState.activeTab = tab.textContent.trim();
+
+    const label = tab.textContent.trim();
+
+    if (label === "Amazon IN") appState.activeMP = "AMAZON IN";
+    else if (label === "Flipkart") appState.activeMP = "FLIPKART";
+    else if (label === "Myntra") appState.activeMP = "MYNTRA";
+    else if (label === "SELLER") appState.activeMP = "SELLER";
+    else appState.activeMP = "ALL";
+
     renderAll();
   });
 });
 
 loadAllSheets();
-
