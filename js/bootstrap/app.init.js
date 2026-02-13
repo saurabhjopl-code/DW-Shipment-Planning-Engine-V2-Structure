@@ -146,59 +146,19 @@ async function fetchAndValidate(sheetKey, sheetConfig) {
 }
 
 // ===============================
-// FILTER LOGIC (FIX FOR ISSUE 1)
-// ===============================
-
-function getFilteredData() {
-
-  if (appState.activeTab === "Demand Weight")
-    return appState.drrData;
-
-  const target = appState.activeTab.toUpperCase();
-
-  return appState.drrData.filter(item => {
-    const mp = (item.MP || "").toUpperCase();
-
-    if (target === "AMAZON IN") return mp.includes("AMAZON");
-    if (target === "FLIPKART") return mp.includes("FLIPKART");
-    if (target === "MYNTRA") return mp.includes("MYNTRA");
-
-    return true;
-  });
-}
-
-// ===============================
-// RENDER CONTROL (FIX FOR ISSUE 2)
+// RENDER CONTROL
 // ===============================
 
 function renderAll() {
 
-  const fcCard = document.querySelector(".content-container .card:nth-child(1)");
-  const summaryCard = document.querySelector(".content-container .card:nth-child(2)");
-  const shipmentCard = document.querySelector(".content-container .card:nth-child(3)");
-
   if (appState.activeTab === "Demand Weight") {
-
-    if (fcCard) fcCard.style.display = "none";
-    if (summaryCard) summaryCard.style.display = "none";
-    if (shipmentCard) shipmentCard.style.display = "block";
-
     renderDW(appState);
     return;
   }
 
-  if (fcCard) fcCard.style.display = "block";
-  if (summaryCard) summaryCard.style.display = "block";
-  if (shipmentCard) shipmentCard.style.display = "block";
-
-  const filteredState = {
-    ...appState,
-    drrData: getFilteredData()
-  };
-
-  renderFCSummary(filteredState);
-  renderShipmentSummary(filteredState);
-  renderShipmentReport(filteredState);
+  renderFCSummary(appState);
+  renderShipmentSummary(appState);
+  renderShipmentReport(appState);
 }
 
 // ===============================
@@ -224,20 +184,20 @@ async function loadAllSheets() {
     appState.remarks = await fetchAndValidate("Remarks", SHEETS.remarks);
     remarksCountEl.textContent = appState.remarks.length.toLocaleString();
 
-    updateProgress(65, "Running Engines...");
-
+    updateProgress(65, "Consolidating...");
     runConsolidationEngine(appState);
+
     runDRREngine(appState);
     runSCEngine(appState);
     runRequiredEngine(appState);
     runRecallEngine(appState);
     runDistributionEngine(appState);
     runFinalShipmentEngine(appState);
+
     runDWEngine(appState);
 
     updateProgress(95, "Rendering...");
-
-    renderAll(); // Force correct initial tab render
+    renderAll();
 
     updateProgress(100, "All Data Loaded Successfully ✔", "#16a34a");
 
@@ -266,12 +226,9 @@ exportRecallBtn.addEventListener("click", () => {
 
 tabButtons.forEach(tab => {
   tab.addEventListener("click", () => {
-
     tabButtons.forEach(t => t.classList.remove("active"));
     tab.classList.add("active");
-
     appState.activeTab = tab.textContent.trim();
-
     renderAll();
   });
 });
