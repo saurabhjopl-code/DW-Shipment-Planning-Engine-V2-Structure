@@ -1,73 +1,88 @@
 // ==========================================
-// FC SUMMARY RENDER WITH GRAND TOTAL
+// FC SUMMARY RENDER (CORRECT STOCK SOURCE)
 // ==========================================
 
 export function renderFCSummary(appState) {
 
-  const tbody = document.querySelector(
-    ".content-container .card:nth-child(1) tbody"
-  );
+  const tableBody = document.getElementById("fcSummaryBody");
+  if (!tableBody) return;
 
-  tbody.innerHTML = "";
+  tableBody.innerHTML = "";
 
-  const fcGroups = {};
+  const fcStockMap = {};
+  const fcSaleMap = {};
 
+  // ✅ 1. Get TOTAL STOCK from fcConsolidated (NOT drrData)
+  Object.values(appState.fcConsolidated).forEach(item => {
+
+    const fc = item["Warehouse Id"];
+    const qty = item["Quantity"] || 0;
+
+    if (!fcStockMap[fc]) fcStockMap[fc] = 0;
+
+    fcStockMap[fc] += qty;
+  });
+
+  // ✅ 2. Get TOTAL SALE from drrData
   appState.drrData.forEach(item => {
 
-    const key = `${item.MP}__${item.warehouseId}`;
+    const fc = item["Warehouse Id"];
+    const sale = item.totalUnits30D || 0;
 
-    if (!fcGroups[key]) {
-      fcGroups[key] = {
-        MP: item.MP,
-        warehouseId: item.warehouseId,
-        totalStock: 0,
-        totalSale: 0
-      };
-    }
+    if (!fcSaleMap[fc]) fcSaleMap[fc] = 0;
 
-    fcGroups[key].totalStock += item.fcStock || 0;
-    fcGroups[key].totalSale += item.totalUnits30D || 0;
+    fcSaleMap[fc] += sale;
   });
+
+  // Merge FCs
+  const allFCs = new Set([
+    ...Object.keys(fcStockMap),
+    ...Object.keys(fcSaleMap)
+  ]);
 
   let grandStock = 0;
   let grandSale = 0;
+  let grandDRR = 0;
 
-  Object.values(fcGroups).forEach(group => {
+  allFCs.forEach(fc => {
 
-    const drr = group.totalSale / 30;
-    const stockCover = drr === 0 ? "∞" : (group.totalStock / drr).toFixed(1);
+    const totalStock = fcStockMap[fc] || 0;
+    const totalSale = fcSaleMap[fc] || 0;
 
-    grandStock += group.totalStock;
-    grandSale += group.totalSale;
+    const drr = totalSale / 30;
+    const stockCover = drr > 0 ? totalStock / drr : 0;
+
+    grandStock += totalStock;
+    grandSale += totalSale;
+    grandDRR += drr;
 
     const tr = document.createElement("tr");
 
     tr.innerHTML = `
-      <td>${group.MP} - ${group.warehouseId}</td>
-      <td>${group.totalStock.toLocaleString()}</td>
-      <td>${group.totalSale.toLocaleString()}</td>
+      <td>${fc}</td>
+      <td>${totalStock.toLocaleString()}</td>
+      <td>${totalSale.toLocaleString()}</td>
       <td>${drr.toFixed(2)}</td>
-      <td>${stockCover}</td>
+      <td>${stockCover.toFixed(1)}</td>
     `;
 
-    tbody.appendChild(tr);
+    tableBody.appendChild(tr);
   });
 
-  // Grand Total Row
-  const grandDRR = grandSale / 30;
-  const grandSC = grandDRR === 0 ? "∞" : (grandStock / grandDRR).toFixed(1);
+  // GRAND TOTAL ROW
+  const grandSC = grandDRR > 0 ? grandStock / grandDRR : 0;
 
-  const totalRow = document.createElement("tr");
-  totalRow.style.fontWeight = "bold";
-  totalRow.style.background = "#f3f4f6";
+  const grandRow = document.createElement("tr");
+  grandRow.style.fontWeight = "600";
+  grandRow.style.background = "#f3f4f6";
 
-  totalRow.innerHTML = `
+  grandRow.innerHTML = `
     <td>GRAND TOTAL</td>
     <td>${grandStock.toLocaleString()}</td>
     <td>${grandSale.toLocaleString()}</td>
     <td>${grandDRR.toFixed(2)}</td>
-    <td>${grandSC}</td>
+    <td>${grandSC.toFixed(1)}</td>
   `;
 
-  tbody.appendChild(totalRow);
+  tableBody.appendChild(grandRow);
 }
