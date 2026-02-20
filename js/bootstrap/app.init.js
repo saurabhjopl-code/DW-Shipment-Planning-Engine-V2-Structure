@@ -171,10 +171,32 @@ function getFilteredData() {
 }
 
 function renderAll() {
-  const filtered = getFilteredData();
-  renderFCSummary({ ...appState, drrData: filtered });
-  renderShipmentSummary({ ...appState, drrData: filtered });
-  renderShipmentReport({ ...appState, drrData: filtered });
+
+  const cards = document.querySelectorAll(".content-container .card");
+
+  // Remove DW card if exists
+  const existingDW = document.getElementById("dwCard");
+  if (existingDW) existingDW.remove();
+
+  // Restore summary cards visibility
+  if (cards.length >= 2) {
+    cards[0].style.display = "block";
+    cards[1].style.display = "block";
+  }
+
+  if (appState.activeTab === "Demand Weight") {
+    renderDW(appState);
+    return;
+  }
+
+  const filteredState = {
+    ...appState,
+    drrData: getFilteredData()
+  };
+
+  renderFCSummary(filteredState);
+  renderShipmentSummary(filteredState);
+  renderShipmentReport(filteredState);
 }
 
 // ===============================
@@ -258,3 +280,4 @@ tabButtons.forEach(tab => {
 });
 
 loadAllSheets();
+
