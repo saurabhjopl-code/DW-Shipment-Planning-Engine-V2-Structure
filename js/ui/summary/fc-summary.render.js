@@ -1,88 +1,117 @@
 // ==========================================
-// FC SUMMARY RENDER (ID-INDEPENDENT SAFE)
+// FC SUMMARY RENDER (CORRECT FULL STOCK)
 // ==========================================
 
 export function renderFCSummary(appState) {
 
-  const fcCard = document.querySelector(".content-container .card:nth-child(1)");
-  if (!fcCard) return;
+  const tbody = document.querySelector(
+    ".content-container .card:nth-child(1) tbody"
+  );
 
-  const tbody = fcCard.querySelector("tbody");
   if (!tbody) return;
 
   tbody.innerHTML = "";
 
-  const fcStockMap = {};
-  const fcSaleMap = {};
+  const fcGroups = {};
 
-  // 1️⃣ FULL STOCK from FC sheet
+  // ===============================
+  // 1️⃣ Build FULL STOCK from FC sheet
+  // ===============================
+
   appState.fc.forEach(row => {
 
-    const fc = row["Warehouse Id"];
+    const MP = row["MP"];
+    const warehouseId = row["Warehouse Id"];
     const qty = row["Quantity"] || 0;
 
-    if (!fcStockMap[fc]) fcStockMap[fc] = 0;
-    fcStockMap[fc] += qty;
+    // Respect active tab filter
+    if (appState.activeTab && appState.activeTab !== "Amazon IN" &&
+        appState.activeTab !== "Flipkart" &&
+        appState.activeTab !== "Myntra" &&
+        appState.activeTab !== "SELLER") {
+      return;
+    }
+
+    const key = `${MP}__${warehouseId}`;
+
+    if (!fcGroups[key]) {
+      fcGroups[key] = {
+        MP,
+        warehouseId,
+        totalStock: 0,
+        totalSale: 0
+      };
+    }
+
+    fcGroups[key].totalStock += qty;
   });
 
-  // 2️⃣ SALE from drrData
+  // ===============================
+  // 2️⃣ Add SALE from drrData
+  // ===============================
+
   appState.drrData.forEach(item => {
 
-    const fc = item["Warehouse Id"];
-    const sale = item.totalUnits30D || 0;
+    const key = `${item.MP}__${item.warehouseId}`;
 
-    if (!fcSaleMap[fc]) fcSaleMap[fc] = 0;
-    fcSaleMap[fc] += sale;
+    if (!fcGroups[key]) {
+      fcGroups[key] = {
+        MP: item.MP,
+        warehouseId: item.warehouseId,
+        totalStock: 0,
+        totalSale: 0
+      };
+    }
+
+    fcGroups[key].totalSale += item.totalUnits30D || 0;
   });
-
-  const allFCs = new Set([
-    ...Object.keys(fcStockMap),
-    ...Object.keys(fcSaleMap)
-  ]);
 
   let grandStock = 0;
   let grandSale = 0;
-  let grandDRR = 0;
 
-  allFCs.forEach(fc => {
+  Object.values(fcGroups).forEach(group => {
 
-    const totalStock = fcStockMap[fc] || 0;
-    const totalSale = fcSaleMap[fc] || 0;
+    const drr = group.totalSale / 30;
+    const stockCover = drr === 0
+      ? "∞"
+      : (group.totalStock / drr).toFixed(1);
 
-    const drr = totalSale / 30;
-    const stockCover = drr > 0 ? totalStock / drr : 0;
-
-    grandStock += totalStock;
-    grandSale += totalSale;
-    grandDRR += drr;
+    grandStock += group.totalStock;
+    grandSale += group.totalSale;
 
     const tr = document.createElement("tr");
 
     tr.innerHTML = `
-      <td>${fc}</td>
-      <td>${totalStock.toLocaleString()}</td>
-      <td>${totalSale.toLocaleString()}</td>
+      <td>${group.MP} - ${group.warehouseId}</td>
+      <td>${group.totalStock.toLocaleString()}</td>
+      <td>${group.totalSale.toLocaleString()}</td>
       <td>${drr.toFixed(2)}</td>
-      <td>${stockCover.toFixed(1)}</td>
+      <td>${stockCover}</td>
     `;
 
     tbody.appendChild(tr);
   });
 
-  // Grand total
-  const grandSC = grandDRR > 0 ? grandStock / grandDRR : 0;
+  // ===============================
+  // 3️⃣ GRAND TOTAL
+  // ===============================
 
-  const grandRow = document.createElement("tr");
-  grandRow.style.fontWeight = "600";
-  grandRow.style.background = "#f3f4f6";
+  const grandDRR = grandSale / 30;
+  const grandSC = grandDRR === 0
+    ? "∞"
+    : (grandStock / grandDRR).toFixed(1);
 
-  grandRow.innerHTML = `
+  const totalRow = document.createElement("tr");
+  totalRow.style.fontWeight = "bold";
+  totalRow.style.background = "#f3f4f6";
+
+  totalRow.innerHTML = `
     <td>GRAND TOTAL</td>
     <td>${grandStock.toLocaleString()}</td>
     <td>${grandSale.toLocaleString()}</td>
     <td>${grandDRR.toFixed(2)}</td>
-    <td>${grandSC.toFixed(1)}</td>
+    <td>${grandSC}</td>
   `;
 
-  tbody.appendChild(grandRow);
+  tbody.appendChild(totalRow);
 }
