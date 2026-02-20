@@ -1,36 +1,37 @@
 // ==========================================
-// FC SUMMARY RENDER (CORRECT FULL STOCK)
+// FC SUMMARY RENDER (ID-INDEPENDENT SAFE)
 // ==========================================
 
 export function renderFCSummary(appState) {
 
-  const tableBody = document.getElementById("fcSummaryBody");
-  if (!tableBody) return;
+  const fcCard = document.querySelector(".content-container .card:nth-child(1)");
+  if (!fcCard) return;
 
-  tableBody.innerHTML = "";
+  const tbody = fcCard.querySelector("tbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
 
   const fcStockMap = {};
   const fcSaleMap = {};
 
-  // 1️⃣ TOTAL STOCK → from FC sheet (full stock)
+  // 1️⃣ FULL STOCK from FC sheet
   appState.fc.forEach(row => {
 
     const fc = row["Warehouse Id"];
     const qty = row["Quantity"] || 0;
 
     if (!fcStockMap[fc]) fcStockMap[fc] = 0;
-
     fcStockMap[fc] += qty;
   });
 
-  // 2️⃣ TOTAL SALE → from drrData
+  // 2️⃣ SALE from drrData
   appState.drrData.forEach(item => {
 
     const fc = item["Warehouse Id"];
     const sale = item.totalUnits30D || 0;
 
     if (!fcSaleMap[fc]) fcSaleMap[fc] = 0;
-
     fcSaleMap[fc] += sale;
   });
 
@@ -65,10 +66,10 @@ export function renderFCSummary(appState) {
       <td>${stockCover.toFixed(1)}</td>
     `;
 
-    tableBody.appendChild(tr);
+    tbody.appendChild(tr);
   });
 
-  // Grand Total Row
+  // Grand total
   const grandSC = grandDRR > 0 ? grandStock / grandDRR : 0;
 
   const grandRow = document.createElement("tr");
@@ -83,5 +84,5 @@ export function renderFCSummary(appState) {
     <td>${grandSC.toFixed(1)}</td>
   `;
 
-  tableBody.appendChild(grandRow);
+  tbody.appendChild(grandRow);
 }
