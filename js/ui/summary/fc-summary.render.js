@@ -1,5 +1,5 @@
 // ==========================================
-// FC SUMMARY RENDER (CORRECT STOCK SOURCE)
+// FC SUMMARY RENDER (CORRECT FULL STOCK)
 // ==========================================
 
 export function renderFCSummary(appState) {
@@ -12,18 +12,18 @@ export function renderFCSummary(appState) {
   const fcStockMap = {};
   const fcSaleMap = {};
 
-  // ✅ 1. Get TOTAL STOCK from fcConsolidated (NOT drrData)
-  Object.values(appState.fcConsolidated).forEach(item => {
+  // 1️⃣ TOTAL STOCK → from FC sheet (full stock)
+  appState.fc.forEach(row => {
 
-    const fc = item["Warehouse Id"];
-    const qty = item["Quantity"] || 0;
+    const fc = row["Warehouse Id"];
+    const qty = row["Quantity"] || 0;
 
     if (!fcStockMap[fc]) fcStockMap[fc] = 0;
 
     fcStockMap[fc] += qty;
   });
 
-  // ✅ 2. Get TOTAL SALE from drrData
+  // 2️⃣ TOTAL SALE → from drrData
   appState.drrData.forEach(item => {
 
     const fc = item["Warehouse Id"];
@@ -34,7 +34,6 @@ export function renderFCSummary(appState) {
     fcSaleMap[fc] += sale;
   });
 
-  // Merge FCs
   const allFCs = new Set([
     ...Object.keys(fcStockMap),
     ...Object.keys(fcSaleMap)
@@ -69,7 +68,7 @@ export function renderFCSummary(appState) {
     tableBody.appendChild(tr);
   });
 
-  // GRAND TOTAL ROW
+  // Grand Total Row
   const grandSC = grandDRR > 0 ? grandStock / grandDRR : 0;
 
   const grandRow = document.createElement("tr");
